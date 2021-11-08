@@ -1,1 +1,2 @@
-# Diplomska_Naloga_2021
+# Diplomska naloga
+## Arhitektura priporočilnega sistema v FMCG sektorju
