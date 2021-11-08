@@ -6,6 +6,9 @@ class Aisle():
         self.id = int(id)
         self.name = name
 
+    def __repr__(self):
+        return f"Aisle {self.id}: {self.name}\n"
+
 
 class Department():
     id: int
@@ -14,6 +17,9 @@ class Department():
     def __init__(self, id, name):
         self.id = int(id)
         self.name = name
+
+    def __repr__(self):
+        return f"Department {self.id}: {self.name}\n"
 
 
 class Product():
@@ -29,4 +35,4 @@ class Product():
         self.department = department
 
     def __repr__(self):
-        return f"Product:\n    id: {self.id}\n    Name: {self.name}\n    Aisle: {self.aisle.name}(id:{self.aisle.id}\n    Department: {self.department.name}(id:{self.department.id}))"
+        return f"Product {self.id}:\n    Name: {self.name}\n    Aisle: {self.aisle.name}(id:{self.aisle.id})\n    Department: {self.department.name}(id:{self.department.id})\n"
