@@ -12,7 +12,7 @@ class DataPaths():
     orderProductsTrainCSV = "Data/order_products__train.csv"
 
 
-class userFiles():
+class UserFiles():
     '''
         Class for holding paths to user input and output files
     '''
