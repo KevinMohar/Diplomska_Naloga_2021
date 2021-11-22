@@ -1,7 +1,7 @@
 class Predictor(object):
 
     '''
-    A template class for predictor
+    A template class for a predictor
     '''
 
     data = None

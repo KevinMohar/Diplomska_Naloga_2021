@@ -4,7 +4,7 @@ from Predictors.RandomPredictor import RandomPredictor
 
 class Recommender:
     '''
-    Uses predictor passed to constructor to reccomend products
+    Reccomender class 
     '''
 
     predictor: Predictor
@@ -14,20 +14,20 @@ class Recommender:
         '''
         Inits a predictor to be used for recommending products
 
-        :param predictor: (predictor) predictor to be used
+        :param predictor: (Predictor) predictor to be used
         '''
         self.predictor = predictor
 
-    def recommend(self, userID: int, NumOfProducts: int = 10):
+    def recommend(self, userID: int, N: int = 10):
         '''
-        Reccomends products for given users
+        Function reccomends top N products for given user
 
         :param userID: (int) users id
         :param NumOfProducts: (int) number if products to return 
         :return: (list) returns list of products
         '''
-        if NumOfProducts > 0:
-            return self.predictor.predict(NumOfProducts)
+        if N > 0:
+            return self.predictor.predict(N)
 
     def fit(self, data):
         '''

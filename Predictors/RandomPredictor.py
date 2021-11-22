@@ -10,14 +10,14 @@ class RandomPredictor(Predictor):
     def __init__(self) -> None:
         super().__init__()
 
-    def predict(self, numOfProducts: int):
+    def predict(self, N: int):
         '''
-        Returns numOfProducts random products from data
+        Returns N random products from list of products
 
-        :param numOfProducts: (int) number of products to return
+        :param N: (int) number of products to return
         :return: (list) list of numOfProducts recommended products
         '''
-        return random.sample(self.data, numOfProducts)
+        return random.sample(self.data, N)
 
     def fit(self, data: list):
         '''
