@@ -1,3 +1,6 @@
+from DataProvider import DataProvider
+
+
 class Predictor(object):
 
     '''
@@ -5,6 +8,7 @@ class Predictor(object):
     '''
 
     data = None
+    dp: DataProvider
 
 
 def __init__(self) -> None:

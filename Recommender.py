@@ -10,7 +10,7 @@ class Recommender:
     predictor: Predictor
     data = None
 
-    def __init__(self, predictor):
+    def __init__(self, predictor: Predictor):
         '''
         Inits a predictor to be used for recommending products
 
@@ -18,7 +18,7 @@ class Recommender:
         '''
         self.predictor = predictor
 
-    def recommend(self, userID: int, N: int = 10):
+    def recommend(self, userID: int, basket: list, N: int = 10):
         '''
         Function reccomends top N products for given user
 
@@ -27,7 +27,7 @@ class Recommender:
         :return: (list) returns list of products
         '''
         if N > 0:
-            return self.predictor.predict(N)
+            return self.predictor.predict(N, userID, basket)
 
     def fit(self, data):
         '''

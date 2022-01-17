@@ -14,3 +14,21 @@ Datoteke potrebne za delovanje aplikacije:
 - sample_submission.csv
 
 ## Opis podatkov
+
+### Aisles.csv
+
+### Departments.csv
+
+### Order_products_prior.csv & Order_products_train.csv
+
+Datoteki vsebujta podatke o košaricah.
+
+| order_id                |         product_id         |                     add_to_cart_order |                      reordered |
+| ----------------------- | :------------------------: | ------------------------------------: | -----------------------------: |
+| id nakupa iz orders.csv | id izdelka iz products.csv | zaporedna številka izdelka v košarici | je bil izdelek ponovno naročen |
+
+### Orders.csv
+
+### Products.csv
+
+### Sample_submissions.csv

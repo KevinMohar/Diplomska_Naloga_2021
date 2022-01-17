@@ -1,13 +1,18 @@
 from DataProvider import DataProvider
-from Predictors.RandomPredictor import RandomPredictor
+from Predictors.SimpleContextBasedPredictor import SimpleContextBasedPredictor
 from Recommender import Recommender
+from UI.UImanager import UImanager
+
+
 
 dp = DataProvider()
+uiManager = UImanager()
 
-predictor = RandomPredictor()
+#recommender = Recommender(SimpleContextBasedPredictor(dp))
+# recommender.fit(dp.products)
 
-recommender = Recommender(predictor)
-recommender.fit(dp.products)
 
-for prod in recommender.recommend(1, 3):
-    print(prod)
+#print(recommender.recommend(3, [], 2))
+print(dp.aisles)
+
+

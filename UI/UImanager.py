@@ -1,4 +1,5 @@
 from ApplicationConstants import UserFiles
+import json
 
 
 class UImanager():
@@ -8,15 +9,16 @@ class UImanager():
 
     files: UserFiles
 
-    def __init__(self, files: UserFiles) -> None:
-        self.files = files
+    def __init__(self) -> None:
+        self.files = UserFiles
 
     def getBasket(self):
-        '''
-        Function reads the input file containing user id and basket of products and returns a dictionary containing
-            user id and products.
-        '''
-        pass
+        # Funkcija prebere podatke o kupcu in izdelkih v košarici iz datoteke z vhodnimi podatki
+
+        f = open(UserFiles.basketInput)
+        data = json.load(f)["order"]
+        f.close()
+        return data
 
     def outputRecommendations(self):
         '''

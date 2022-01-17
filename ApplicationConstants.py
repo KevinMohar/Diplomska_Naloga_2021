@@ -1,6 +1,6 @@
 class DataPaths():
     '''
-    Class for holding paths to .csv data files
+    Class for holding paths to data files
     '''
 
     aislesCSV = "Data/aisles.csv"
@@ -11,11 +11,24 @@ class DataPaths():
     orderProductsPriorCSV = "Data/order_products__prior.csv"
     orderProductsTrainCSV = "Data/order_products__train.csv"
 
+    aislesJSON = "Data/aisles.json"
+    departmentsJSON = "Data/departments.json"
+    productsJSON = "Data/products.json"
+    ordersJSON = "Data/orders.json"
+
 
 class UserFiles():
     '''
         Class for holding paths to user input and output files
     '''
 
-    basketInput = "UI/basketInput.txt"
-    recommenderOutput = "UI/recommenderOutput.txt"
+    basketInput = "UI/currentOrder.json"
+    recommenderOutput = "UI/recommenderOutput.json"
+
+
+class Logging():
+    '''
+        Class for simple logging output
+    '''
+
+    INFO = "[SYSTEM_INFO]: "
