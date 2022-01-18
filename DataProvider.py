@@ -16,13 +16,18 @@ class DataProvider():
     departments = {}
     products = {}
     orders = {}
+    emptyOrders = {}
 
     threads = []
 
-    def __init__(self) -> None:
-        if(False):
-            print(Logging.INFO + "Startee data parsing (to parse: aisles, departments, products, orders, ordered products)...")
+    def __init__(self, clearCache: bool = False) -> None:
 
+        if clearCache:
+            self.__deleteAllJSON()
+
+        print(Logging.INFO + "Started data parsing (to parse: aisles, departments, products, orders, ordered products)...")
+
+        if not (os.path.isfile(DataPaths.aislesJSON) and os.path.isfile(DataPaths.departmentsJSON) and os.path.isfile(DataPaths.productsJSON) and os.path.isfile(DataPaths.ordersJSON)):
             t1 = threading.Thread(target=self.__getAisles)
             self.threads.append(t1)
 
@@ -45,10 +50,17 @@ class DataProvider():
             print(Logging.INFO + "Finished parsing ordered products")
 
             # store to json
-            self.__storeDataToJSON()
+            #self.__storeDataToJSON()
 
+            # clean orders
+            for key in list(self.orders.keys()):
+                if len(self.orders[key].product_list) == 0:
+                    self.emptyOrders[key] = self.orders[key]
+                    del self.orders[key]
+                    
         else:
-            self.__getAislesFromJSON()
+            #self.__getAislesFromJSON()
+            pass
 
     def __getAisles(self):
         with open(DataPaths.aislesCSV, "r", encoding='UTF-8') as csvfile:
@@ -128,6 +140,16 @@ class DataProvider():
         else:
             return None
 
+    def __deleteAllJSON(self):
+        if os.path.isfile(DataPaths.aislesJSON):
+            os.remove(DataPaths.aislesJSON)
+        if os.path.isfile(DataPaths.departmentsJSON):    
+            os.remove(DataPaths.departmentsJSON)
+        if os.path.isfile(DataPaths.productsJSON):
+            os.remove(DataPaths.productsJSON)
+        if os.path.isfile(DataPaths.ordersJSON):    
+            os.remove(DataPaths.ordersJSON)
+
     def __storeDataToJSON(self):
 
         t1 = threading.Thread(target=self.__storeAislesToJSON)
@@ -141,7 +163,7 @@ class DataProvider():
 
         t4 = threading.Thread(target=self.__storeOrdersToJSON)
         t4.start()
-
+        
     def __storeAislesToJSON(self):
         with open(DataPaths.aislesJSON, "w") as outfile:
             outJSON = {}
@@ -158,11 +180,17 @@ class DataProvider():
 
     def __storeProductsToJSON(self):
         with open(DataPaths.productsJSON, "w") as outfile:
-            json.dump({"products": self.products}, outfile)
+            outJSON = {}
+            products = [json.dumps(self.products[product].__dict__) for product in self.departments]
+            outJSON["products"] = products
+            json.dump(outJSON, outfile)
 
     def __storeOrdersToJSON(self):
         with open(DataPaths.ordersJSON, "w") as outfile:
-            json.dump({"orders": self.orders}, outfile)
+            outJSON = {}
+            orders = [json.dumps(self.orders[order].__dict__) for order in self.orders]
+            outJSON["orders"] = orders
+            json.dump(outJSON, outfile)
 
     def __getAislesFromJSON(self):
         with open(DataPaths.aislesJSON, "r") as reader:
@@ -170,5 +198,12 @@ class DataProvider():
             for aisle in jsonData["aisles"]:
                 aisleObj = Aisle(aisle)
                 self.aisles[aisleObj.id] = aisleObj
+
+    def __getDepartmentsFromJSON(self):
+        with open(DataPaths.departmentsJSON, "r") as reader:
+            jsonData = json.load(reader)
+            for department in jsonData["departments"]:
+                departmentObj = Department(department)
+                self.departments[departmentObj.id] = departmentObj
         
     

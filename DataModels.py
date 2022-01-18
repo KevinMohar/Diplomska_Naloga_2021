@@ -12,15 +12,12 @@ class Aisle():
         if len(args) == 1:
             self.__dict__ = json.loads(args[0])
         elif len(args)==2:
-            self.id = int(args[2])
+            self.id = int(args[0])
             self.name = args[1]
 
     def __repr__(self):
         return f"Aisle {self.id}: {self.name}\n"
 
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__,
-                          sort_keys=True, indent=4)
 
 
 class Department():
@@ -30,16 +27,16 @@ class Department():
     id: int
     name: str
 
-    def __init__(self, id, name):
-        self.id = int(id)
-        self.name = name
+    def __init__(self, *args):
+        if len(args) == 1:
+            self.__dict__ = json.loads(args[0])
+        elif len(args)==2:
+            self.id = int(args[0])
+            self.name = args[1]
 
     def __repr__(self):
         return f"Department {self.id}: {self.name}\n"
 
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__,
-                          sort_keys=True, indent=4)
 
 
 class Product():
