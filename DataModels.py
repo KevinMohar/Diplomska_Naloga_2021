@@ -18,6 +18,9 @@ class Aisle():
     def __repr__(self):
         return f"Aisle {self.id}: {self.name}\n"
 
+    def reprJSON(self):
+        return dict(id=self.id, name=self.name)
+
 
 
 class Department():
@@ -37,6 +40,8 @@ class Department():
     def __repr__(self):
         return f"Department {self.id}: {self.name}\n"
 
+    def reprJSON(self):
+        return dict(id=self.id, name=self.name)
 
 
 class Product():
@@ -57,9 +62,8 @@ class Product():
     def __repr__(self):
         return f"Product {self.id}:\n    Name: {self.name}\n    Aisle: {self.aisle.name}(id:{self.aisle.id})\n    Department: {self.department.name}(id:{self.department.id})\n"
 
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__,
-                          sort_keys=True, indent=4)
+    def reprJSON(self):
+        return dict(id=self.id, name=self.name, aisle=self.aisle, department=self.department)
 
 
 class Order():

@@ -1,4 +1,5 @@
 from ApplicationConstants import UserFiles, DataPaths
+from DataModels import Aisle, Department, Product, Order
 import json
 
 
@@ -28,21 +29,27 @@ class UImanager():
         return self.user_id
     
 
-    def outputRecommendations(self, products: list, printToConsole: bool = False):
+    def outputRecommendations(self, products: dict, printToConsole: bool = False, outputType: str = "id"):
         '''
         Function recives a list of recommended products and writes them in the output file.
         '''
         outProducts = []
-
+        
         for product in products:
-            tmp = {}
-            tmp["product_id"] = product.id
-            tmp["name"] = product.name
-            tmp["aisle"] = json.dumps(product.aisle.__dict__)
-            tmp["department"] = json.dumps(product.department.__dict__)
-            outProducts.append(tmp)
-
+            jsonOut = json.dumps(products[product].reprJSON(), cls=Encoder)
+            if printToConsole:
+                print(jsonOut)
+            outProducts.append(jsonOut)
+        
         with open(UserFiles.recommenderOutput, "w") as outfile:
             outJSON = {}
             outJSON["recommendedProducts"] = json.dumps(outProducts)
             json.dump(outJSON, outfile)
+
+
+class Encoder(json.JSONEncoder):
+    def default(self, obj):
+        if hasattr(obj, "reprJSON"):
+            return obj.reprJSON()
+        else:
+            return json.JSONEncoder.default(self, obj)

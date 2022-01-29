@@ -59,7 +59,9 @@ class DataProvider():
                     del self.orders[key]
                     
         else:
-            #self.__getAislesFromJSON()
+            self.__getAisles()
+            self.__getDepartments()
+            self.__getProducts()
             pass
 
     def __getAisles(self):
