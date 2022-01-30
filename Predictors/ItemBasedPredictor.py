@@ -12,18 +12,15 @@ class ItemBasedPredictor(Predictor):
     # Dict containing num of orders per product({"product1":numOfOrders,"product2":numOfOrders,...})
     orders = {}
 
-    def __init__(self, min_values=0, threshold=0) -> None:
-        self.min_values = min_values
+    def __init__(self, threshold:float = 0) -> None:
         self.threshold = threshold
 
     def predict(self, numOfProducts: int, user_id: int, basket: list):
+        #sestavi matriko 
+        #izracunaj podobnost
         pass
+        
 
     def fit(self, products: list):
         #
         self.data = products
-
-        for x in self.views:
-            for y in self.views:
-                if x != y:
-                    pass

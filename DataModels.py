@@ -8,12 +8,9 @@ class Aisle():
     id: int
     name: str
 
-    def __init__(self, *args):
-        if len(args) == 1:
-            self.__dict__ = json.loads(args[0])
-        elif len(args)==2:
-            self.id = int(args[0])
-            self.name = args[1]
+    def __init__(self,id:int, name:str):
+        self.id = id
+        self.name = name
 
     def __repr__(self):
         return f"Aisle {self.id}: {self.name}\n"
@@ -30,13 +27,10 @@ class Department():
     id: int
     name: str
 
-    def __init__(self, *args):
-        if len(args) == 1:
-            self.__dict__ = json.loads(args[0])
-        elif len(args)==2:
-            self.id = int(args[0])
-            self.name = args[1]
-
+    def __init__(self,id:int, name:str):
+        self.id = id
+        self.name = name
+            
     def __repr__(self):
         return f"Department {self.id}: {self.name}\n"
 
@@ -99,3 +93,7 @@ class Order():
 
     def addProduct(self, product: Product):
         self.product_list.append(product)
+
+    def reprJSON(self):
+        return dict(id=self.id, user_id = self.user_id, eval_set=self.eval_set, order_number=self.order_number, order_dow=self.order_dow,
+            order_hour_of_day=self.order_hour_of_day, days_since_prior_order=self.days_since_prior_order, product_list=self.product_list)

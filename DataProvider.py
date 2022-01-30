@@ -1,3 +1,4 @@
+import imp
 from ApplicationConstants import DataPaths, Logging
 from DataModels import Aisle, Department, Product, Order
 import csv
@@ -5,29 +6,28 @@ import json
 import os
 import threading
 from collections import namedtuple
-from json import JSONEncoder
-
+from JSONEncoder import Encoder
+import pickle
 
 class DataProvider():
-
-    maxNumOfRecords = 10000
 
     aisles = {}
     departments = {}
     products = {}
     orders = {}
-    emptyOrders = {}
+    __emptyOrders = {}
 
     threads = []
 
     def __init__(self, clearCache: bool = False) -> None:
 
         if clearCache:
-            self.__deleteAllJSON()
+            self.__deleteAllPickle()
 
-        print(Logging.INFO + "Started data parsing (to parse: aisles, departments, products, orders, ordered products)...")
+        if not (os.path.isfile(DataPaths.ordersPickle) andos.path.isfile(DataPaths.ordersPickle)):
 
-        if not (os.path.isfile(DataPaths.aislesJSON) and os.path.isfile(DataPaths.departmentsJSON) and os.path.isfile(DataPaths.productsJSON) and os.path.isfile(DataPaths.ordersJSON)):
+            print(Logging.INFO + "Started data parsing (to parse: aisles, departments, products, orders, ordered products)...")
+
             t1 = threading.Thread(target=self.__getAisles)
             self.threads.append(t1)
 
@@ -49,20 +49,21 @@ class DataProvider():
             self.__getOrderedProducts()
             print(Logging.INFO + "Finished parsing ordered products")
 
-            # store to json
-            #self.__storeDataToJSON()
-
             # clean orders
             for key in list(self.orders.keys()):
                 if len(self.orders[key].product_list) == 0:
-                    self.emptyOrders[key] = self.orders[key]
+                    self.__emptyOrders[key] = self.orders[key]
                     del self.orders[key]
+
+            # store to pickle
+            self.__storeOrdersToPickle()
                     
         else:
-            self.__getAisles()
-            self.__getDepartments()
-            self.__getProducts()
-            pass
+            self.__getAislesFromPickle()
+            self.__getDepartmentsFromPickle()
+            self.__getProductsFromPickle()
+            self.__getOrdersFromPickle()
+            print(Logging.INFO + "Restored data from .pickle files!")
 
     def __getAisles(self):
         with open(DataPaths.aislesCSV, "r", encoding='UTF-8') as csvfile:
@@ -124,6 +125,30 @@ class DataProvider():
                 if product:
                     self.orders[order_id].addProduct(product)
 
+    def __getOrdersFromPickle(self):
+        with open(DataPaths.ordersPickle, "rb") as reader:
+            data = pickle.load(reader)
+            for obj in data:
+                self.orders[obj.id] = obj
+
+    def __getAislesFromPickle(self):
+        with open(DataPaths.aislesPickle, "rb") as reader:
+            data = pickle.load(reader)
+            for obj in data:
+                self.aisles[obj.id] = obj
+
+    def __getDepartmentsFromPickle(self):
+        with open(DataPaths.departmentsPickle, "rb") as reader:
+            data = pickle.load(reader)
+            for obj in data:
+                self.departments[obj.id] = obj
+
+    def __getProductsFromPickle(self):
+        with open(DataPaths.productsPickle, "rb") as reader:
+            data = pickle.load(reader)
+            for obj in data:
+                self.products[obj.id] = obj
+
     def __findAisle(self, id: int):
         if id in self.aisles.keys():
             return self.aisles[id]
@@ -142,70 +167,50 @@ class DataProvider():
         else:
             return None
 
-    def __deleteAllJSON(self):
-        if os.path.isfile(DataPaths.aislesJSON):
-            os.remove(DataPaths.aislesJSON)
-        if os.path.isfile(DataPaths.departmentsJSON):    
-            os.remove(DataPaths.departmentsJSON)
-        if os.path.isfile(DataPaths.productsJSON):
-            os.remove(DataPaths.productsJSON)
-        if os.path.isfile(DataPaths.ordersJSON):    
-            os.remove(DataPaths.ordersJSON)
+    def __storeDataToPickle(self):
+        threads = []
+        threads.append(threading.Thread(target=self.__storeAislesToPickle))
+        threads.append(threading.Thread(target=self.__storeDepartmentsToPickle))
+        threads.append(threading.Thread(target=self.__storeProductsToPickle))
+        threads.append(threading.Thread(target=self.__storeOrdersToPickle))
 
-    def __storeDataToJSON(self):
+        for thread in threads:
+            thread.start()
 
-        t1 = threading.Thread(target=self.__storeAislesToJSON)
-        t1.start()
+        for thread in threads:
+            thread.join()
 
-        t2 = threading.Thread(target=self.__storeDepartmentsToJSON)
-        t2.start()
+    def __storeAislesToPickle(self):
+        outData = list(self.aisles.values())
+                
+        with open(DataPaths.aislesPickle, "wb") as outfile:
+            pickle.dump(outData, outfile, pickle.HIGHEST_PROTOCOL)
 
-        t3 = threading.Thread(target=self.__storeProductsToJSON)
-        t3.start()
+    def __storeDepartmentsToPickle(self):
+        outData = list(self.departments.values())
+                
+        with open(DataPaths.departmentsPickle, "wb") as outfile:
+            pickle.dump(outData, outfile, pickle.HIGHEST_PROTOCOL)
 
-        t4 = threading.Thread(target=self.__storeOrdersToJSON)
-        t4.start()
-        
-    def __storeAislesToJSON(self):
-        with open(DataPaths.aislesJSON, "w") as outfile:
-            outJSON = {}
-            aisles = [json.dumps(self.aisles[aisle].__dict__) for aisle in self.aisles]
-            outJSON["aisles"] = aisles
-            json.dump(outJSON, outfile)
+    def __storeProductsToPickle(self):
+        outData = list(self.products.values())
+                
+        with open(DataPaths.productsPickle, "wb") as outfile:
+            pickle.dump(outData, outfile, pickle.HIGHEST_PROTOCOL)
 
-    def __storeDepartmentsToJSON(self):
-        with open(DataPaths.departmentsJSON, "w") as outfile:
-            outJSON = {}
-            departments = [json.dumps(self.departments[department].__dict__) for department in self.departments]
-            outJSON["departments"] = departments
-            json.dump(outJSON, outfile)
+    def __storeOrdersToPickle(self):
+        outOrders = list(self.orders.values())
+                
+        with open(DataPaths.ordersPickle, "wb") as outfile:
+            pickle.dump(outOrders, outfile, pickle.HIGHEST_PROTOCOL)
 
-    def __storeProductsToJSON(self):
-        with open(DataPaths.productsJSON, "w") as outfile:
-            outJSON = {}
-            products = [json.dumps(self.products[product].__dict__) for product in self.departments]
-            outJSON["products"] = products
-            json.dump(outJSON, outfile)
-
-    def __storeOrdersToJSON(self):
-        with open(DataPaths.ordersJSON, "w") as outfile:
-            outJSON = {}
-            orders = [json.dumps(self.orders[order].__dict__) for order in self.orders]
-            outJSON["orders"] = orders
-            json.dump(outJSON, outfile)
-
-    def __getAislesFromJSON(self):
-        with open(DataPaths.aislesJSON, "r") as reader:
-            jsonData = json.load(reader)
-            for aisle in jsonData["aisles"]:
-                aisleObj = Aisle(aisle)
-                self.aisles[aisleObj.id] = aisleObj
-
-    def __getDepartmentsFromJSON(self):
-        with open(DataPaths.departmentsJSON, "r") as reader:
-            jsonData = json.load(reader)
-            for department in jsonData["departments"]:
-                departmentObj = Department(department)
-                self.departments[departmentObj.id] = departmentObj
-        
+    def __deleteAllPickle(self):
+        if os.path.isfile(DataPaths.aislesPickle):
+            os.remove(DataPaths.aislesPickle)
+        if os.path.isfile(DataPaths.departmentsPickle):    
+            os.remove(DataPaths.departmentsPickle)
+        if os.path.isfile(DataPaths.productsPickle):
+            os.remove(DataPaths.productsPickle)
+        if os.path.isfile(DataPaths.ordersPickle):    
+            os.remove(DataPaths.ordersPickle)   
     

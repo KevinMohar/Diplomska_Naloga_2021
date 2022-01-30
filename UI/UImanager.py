@@ -1,6 +1,7 @@
 from ApplicationConstants import UserFiles, DataPaths
 from DataModels import Aisle, Department, Product, Order
 import json
+from JSONEncoder import Encoder
 
 
 class UImanager():
@@ -47,9 +48,3 @@ class UImanager():
             json.dump(outJSON, outfile)
 
 
-class Encoder(json.JSONEncoder):
-    def default(self, obj):
-        if hasattr(obj, "reprJSON"):
-            return obj.reprJSON()
-        else:
-            return json.JSONEncoder.default(self, obj)

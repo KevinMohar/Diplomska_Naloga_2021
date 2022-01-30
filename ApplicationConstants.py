@@ -3,6 +3,7 @@ class DataPaths():
     Class for holding paths to data files
     '''
 
+    # CSV files
     aislesCSV = "Data/aisles.csv"
     departmentsCSV = "Data/departments.csv"
     productsCSV = "Data/products.csv"
@@ -11,10 +12,11 @@ class DataPaths():
     orderProductsPriorCSV = "Data/order_products__prior.csv"
     orderProductsTrainCSV = "Data/order_products__train.csv"
 
-    aislesJSON = "Data/aisles.json"
-    departmentsJSON = "Data/departments.json"
-    productsJSON = "Data/products.json"
-    ordersJSON = "Data/orders.json"
+    # pickle files
+    aislesPickle = "Data/aisles.pickle"
+    departmentsPickle = "Data/departments.pickle"
+    productsPickle= "Data/products.pickle"
+    ordersPickle= "Data/orders.pickle"
 
 
 class UserFiles():
