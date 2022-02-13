@@ -6,23 +6,22 @@ from UI.UImanager import UImanager
 
 recommendations = {}
 
-dp = DataProvider(True)
+dp = DataProvider(False)
 uiManager = UImanager()
 
 # simple context based
-SCBpredictor =SimpleContextBasedPredictor(dp)
+SCBpredictor = SimpleContextBasedPredictor(dp)
 recommender = Recommender(SCBpredictor)
-SCBrecommendations = recommender.recommend(uiManager.getUser(), uiManager.getBasket(), 5)
+SCBrecommendations = recommender.recommend(
+    uiManager.getUser(), uiManager.getBasket(), 5)
 
 # item based
 #IBpredictor = ItemBasedPredictor(dp)
 #recommender = Recommender(IBpredictor)
 #IBrecommendations = recommender.recommend(uiManager.getUser(), uiManager.getBasket(), 5)
 
-#recommendations.update(IBrecommendations)
+# recommendations.update(IBrecommendations)
 recommendations.update(SCBrecommendations)
 
 
 uiManager.outputRecommendations(recommendations, printToConsole=True)
-
-

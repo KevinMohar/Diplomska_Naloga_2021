@@ -9,6 +9,7 @@ from collections import namedtuple
 from JSONEncoder import Encoder
 import pickle
 
+
 class DataProvider():
 
     aisles = {}
@@ -24,7 +25,8 @@ class DataProvider():
         if clearCache:
             self.__deleteAllPickle()
 
-        if not (os.path.isfile(DataPaths.ordersPickle) andos.path.isfile(DataPaths.ordersPickle)):
+        if not (os.path.isfile(DataPaths.ordersPickle) and os.path.isfile(DataPaths.aislesPickle)
+                and os.path.isfile(DataPaths.departmentsPickle) and os.path.isfile(DataPaths.productsPickle)):
 
             print(Logging.INFO + "Started data parsing (to parse: aisles, departments, products, orders, ordered products)...")
 
@@ -57,7 +59,10 @@ class DataProvider():
 
             # store to pickle
             self.__storeOrdersToPickle()
-                    
+            self.__storeAislesToPickle()
+            self.__storeDepartmentsToPickle()
+            self.__storeProductsToPickle()
+
         else:
             self.__getAislesFromPickle()
             self.__getDepartmentsFromPickle()
@@ -110,11 +115,11 @@ class DataProvider():
                 order_number = int(row[3])
                 order_dow = int(row[4])
                 order_hour_of_day = int(row[5])
-                days_since_prior_order = int(row[6]) if len(row)==6 else 0
+                days_since_prior_order = int(row[6]) if len(row) == 6 else 0
                 self.orders[id] = Order(id, user_id, eval_set, order_number, order_dow,
                                         order_hour_of_day, days_since_prior_order)
         print(Logging.INFO + "Finished parsing orders")
-        
+
     def __getOrderedProducts(self):
         with open(DataPaths.orderProductsTrainCSV, "r", encoding='UTF-8') as csvfile:
             reader = csv.reader(csvfile)
@@ -170,7 +175,8 @@ class DataProvider():
     def __storeDataToPickle(self):
         threads = []
         threads.append(threading.Thread(target=self.__storeAislesToPickle))
-        threads.append(threading.Thread(target=self.__storeDepartmentsToPickle))
+        threads.append(threading.Thread(
+            target=self.__storeDepartmentsToPickle))
         threads.append(threading.Thread(target=self.__storeProductsToPickle))
         threads.append(threading.Thread(target=self.__storeOrdersToPickle))
 
@@ -182,35 +188,34 @@ class DataProvider():
 
     def __storeAislesToPickle(self):
         outData = list(self.aisles.values())
-                
+
         with open(DataPaths.aislesPickle, "wb") as outfile:
             pickle.dump(outData, outfile, pickle.HIGHEST_PROTOCOL)
 
     def __storeDepartmentsToPickle(self):
         outData = list(self.departments.values())
-                
+
         with open(DataPaths.departmentsPickle, "wb") as outfile:
             pickle.dump(outData, outfile, pickle.HIGHEST_PROTOCOL)
 
     def __storeProductsToPickle(self):
         outData = list(self.products.values())
-                
+
         with open(DataPaths.productsPickle, "wb") as outfile:
             pickle.dump(outData, outfile, pickle.HIGHEST_PROTOCOL)
 
     def __storeOrdersToPickle(self):
         outOrders = list(self.orders.values())
-                
+
         with open(DataPaths.ordersPickle, "wb") as outfile:
             pickle.dump(outOrders, outfile, pickle.HIGHEST_PROTOCOL)
 
     def __deleteAllPickle(self):
         if os.path.isfile(DataPaths.aislesPickle):
             os.remove(DataPaths.aislesPickle)
-        if os.path.isfile(DataPaths.departmentsPickle):    
+        if os.path.isfile(DataPaths.departmentsPickle):
             os.remove(DataPaths.departmentsPickle)
         if os.path.isfile(DataPaths.productsPickle):
             os.remove(DataPaths.productsPickle)
-        if os.path.isfile(DataPaths.ordersPickle):    
-            os.remove(DataPaths.ordersPickle)   
-    
+        if os.path.isfile(DataPaths.ordersPickle):
+            os.remove(DataPaths.ordersPickle)
