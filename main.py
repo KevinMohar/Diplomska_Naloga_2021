@@ -16,9 +16,10 @@ SCBrecommendations = recommender.recommend(
     uiManager.getUser(), uiManager.getBasket(), 5)
 
 # item based
-#IBpredictor = ItemBasedPredictor(dp)
-#recommender = Recommender(IBpredictor)
-#IBrecommendations = recommender.recommend(uiManager.getUser(), uiManager.getBasket(), 5)
+IBpredictor = ItemBasedPredictor(dp)
+recommender = Recommender(IBpredictor)
+IBrecommendations = recommender.recommend(
+    uiManager.getUser(), uiManager.getBasket(), 5)
 
 # recommendations.update(IBrecommendations)
 recommendations.update(SCBrecommendations)

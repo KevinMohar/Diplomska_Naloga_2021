@@ -1,12 +1,8 @@
-import imp
 from ApplicationConstants import DataPaths, Logging
 from DataModels import Aisle, Department, Product, Order
 import csv
-import json
 import os
 import threading
-from collections import namedtuple
-from JSONEncoder import Encoder
 import pickle
 
 
@@ -71,6 +67,9 @@ class DataProvider():
             print(Logging.INFO + "Restored data from .pickle files!")
 
     def __getAisles(self):
+        '''
+        Function reads aisles from .csv file and stores them in dictionary in apropriate data model
+        '''
         with open(DataPaths.aislesCSV, "r", encoding='UTF-8') as csvfile:
             reader = csv.reader(csvfile)
             next(reader)  # skip header
@@ -81,6 +80,9 @@ class DataProvider():
         print(Logging.INFO + "Finished parsing aisles")
 
     def __getDepartments(self):
+        '''
+        Function reads departments from .csv file and stores them in dictionary in apropriate data model
+        '''
         with open(DataPaths.departmentsCSV, "r", encoding='UTF-8') as csvfile:
             reader = csv.reader(csvfile)
             next(reader)  # skip header
@@ -92,6 +94,9 @@ class DataProvider():
         print(Logging.INFO + "Finished parsing departments")
 
     def __getProducts(self):
+        '''
+        Function reads products from .csv file and stores them in dictionary in apropriate data model
+        '''
         with open(DataPaths.productsCSV, "r", encoding='UTF-8') as csvfile:
             reader = csv.reader(csvfile)
             next(reader)  # skip header
@@ -105,6 +110,9 @@ class DataProvider():
         print(Logging.INFO + "Finished parsing products")
 
     def __getOrders(self):
+        '''
+        Function reads orders from .csv file and stores them in dictionary in apropriate data model
+        '''
         with open(DataPaths.ordersCSV, "r", encoding='UTF-8') as csvfile:
             reader = csv.reader(csvfile)
             next(reader)  # skip header
@@ -121,6 +129,9 @@ class DataProvider():
         print(Logging.INFO + "Finished parsing orders")
 
     def __getOrderedProducts(self):
+        '''
+        Function reads ordered producs from .csv file and appends the list of products to corresponding order 
+        '''
         with open(DataPaths.orderProductsTrainCSV, "r", encoding='UTF-8') as csvfile:
             reader = csv.reader(csvfile)
             next(reader)  # skip header
@@ -131,48 +142,65 @@ class DataProvider():
                     self.orders[order_id].addProduct(product)
 
     def __getOrdersFromPickle(self):
+        '''
+        Function reads orders from .pickle file and stores them in dictionary in apropriate data model
+        '''
         with open(DataPaths.ordersPickle, "rb") as reader:
             data = pickle.load(reader)
             for obj in data:
                 self.orders[obj.id] = obj
 
     def __getAislesFromPickle(self):
+        '''
+        Function reads aisles from .pickle file and stores them in dictionary in apropriate data model
+        '''
         with open(DataPaths.aislesPickle, "rb") as reader:
             data = pickle.load(reader)
             for obj in data:
                 self.aisles[obj.id] = obj
 
     def __getDepartmentsFromPickle(self):
+        '''
+        Function reads departments from .pickle file and stores them in dictionary in apropriate data model
+        '''
         with open(DataPaths.departmentsPickle, "rb") as reader:
             data = pickle.load(reader)
             for obj in data:
                 self.departments[obj.id] = obj
 
     def __getProductsFromPickle(self):
+        '''
+        Function reads products from .pickle file and stores them in dictionary in apropriate data model
+        '''
         with open(DataPaths.productsPickle, "rb") as reader:
             data = pickle.load(reader)
             for obj in data:
                 self.products[obj.id] = obj
 
     def __findAisle(self, id: int):
-        if id in self.aisles.keys():
-            return self.aisles[id]
-        else:
-            return None
+        '''
+        Function retrives an aisle with matching id from dictionary
+        '''
+        return self.aisles.get(id, None)
 
     def __findDepartment(self, id: int):
-        if id in self.departments.keys():
-            return self.departments[id]
-        else:
-            return None
+        '''
+        Function retrives a department with matching id from dictionary
+        '''
+
+        return self.departments.get(id, None)
 
     def __findProduct(self, id: int):
-        if id in self.products.keys():
-            return self.products[id]
-        else:
-            return None
+        '''
+        Function retrives a product with matching id from dictionary
+        '''
+        return self.products.get(id, None)
 
     def __storeDataToPickle(self):
+        '''
+        Function stores data from dictionaries to corresponding .pickle files
+        '''
+
         threads = []
         threads.append(threading.Thread(target=self.__storeAislesToPickle))
         threads.append(threading.Thread(
@@ -187,30 +215,50 @@ class DataProvider():
             thread.join()
 
     def __storeAislesToPickle(self):
+        '''
+        Function stores aisles from dictionary to corresponding .pickle file
+        '''
+
         outData = list(self.aisles.values())
 
         with open(DataPaths.aislesPickle, "wb") as outfile:
             pickle.dump(outData, outfile, pickle.HIGHEST_PROTOCOL)
 
     def __storeDepartmentsToPickle(self):
+        '''
+        Function stores departments from dictionary to corresponding .pickle file
+        '''
+
         outData = list(self.departments.values())
 
         with open(DataPaths.departmentsPickle, "wb") as outfile:
             pickle.dump(outData, outfile, pickle.HIGHEST_PROTOCOL)
 
     def __storeProductsToPickle(self):
+        '''
+        Function stores products from dictionary to corresponding .pickle file
+        '''
+
         outData = list(self.products.values())
 
         with open(DataPaths.productsPickle, "wb") as outfile:
             pickle.dump(outData, outfile, pickle.HIGHEST_PROTOCOL)
 
     def __storeOrdersToPickle(self):
+        '''
+        Function stores orders from dictionary to corresponding .pickle file
+        '''
+
         outOrders = list(self.orders.values())
 
         with open(DataPaths.ordersPickle, "wb") as outfile:
             pickle.dump(outOrders, outfile, pickle.HIGHEST_PROTOCOL)
 
     def __deleteAllPickle(self):
+        '''
+        Function deletes all .pickle files
+        '''
+
         if os.path.isfile(DataPaths.aislesPickle):
             os.remove(DataPaths.aislesPickle)
         if os.path.isfile(DataPaths.departmentsPickle):
