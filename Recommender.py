@@ -1,5 +1,4 @@
 from Predictors.Predictor import Predictor
-from Predictors.RandomPredictor import RandomPredictor
 
 
 class Recommender:
