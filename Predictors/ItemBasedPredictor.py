@@ -1,3 +1,4 @@
+from DataModels import Product
 from Predictors.Predictor import Predictor
 from DataProvider import DataProvider
 
@@ -19,7 +20,44 @@ class ItemBasedPredictor(Predictor):
         Function returns list of N products not in users current basket using item-item CF
         '''
 
-        pass
+        for prod1 in self.data:
+            for prod2 in self.data:
+                if prod1 != prod2:
+                    if (prod1, prod2) not in self.productSimilarities and (prod2, prod1) not in self.productSimilarities:
+                        # calc sim
+                        purchasedBoth = self.getNumOfPurchasesOfBothItems(
+                            prod1, prod2)
+                        purchasedNone = self.getNumOfPurchasesOfNone(
+                            prod1, prod2)
+                        purchasedFirst = self.getNumOfPurchasesOfOnlyOne(
+                            prod1, prod2)
+                        purchasedSecond = self.getNumOfPurchasesOfOnlyOne(
+                            prod2, prod1)
+
+                        # Youls' Q
+                        similarity = ((purchasedBoth * purchasedNone) - (purchasedFirst*purchasedSecond))/(
+                            (purchasedBoth * purchasedNone)+(purchasedFirst*purchasedSecond))
+
+                        if similarity < self.threshold or similarity < 0:
+                            similarity = 0
+
+                        self.productSimilarities.update(
+                            {(prod1, prod2): similarity})
+
+                    elif (prod1, prod2) not in self.productSimilarities and (prod2, prod1) in self.productSimilarities:
+                        self.productSimilarities.update(
+                            {(prod1, prod2): self.productSimilarities[(prod2, prod1)]})
+
+        #
+        for product in self.data:
+            numOfWeights = 0  # vsota podobnosti
+            sumOfWeights = 0  # vsota uteži
+            for pair in self.productSimilarities:
+                if pair[1] == product and self.productSimilarities[pair] > 0:
+                    numOfWeights += self.productSimilarities[pair]
+                    sumOfWeights += self.productSimilarities[pair] * \
+                        self.movies[pair[0]][userID]
+            self.ratings.update({product: sumOfWeights/numOfWeights})
 
     def fit(self, products: list):
         '''
@@ -27,25 +65,22 @@ class ItemBasedPredictor(Predictor):
         '''
 
         self.data = products
+        self.productSimilarities = {}
 
-    def getNeighbourSelection(self, neighbourSize=-1):
+    def getNumOfPurchasesOfBothItems(self, prod1: Product, prod2: Product) -> int:
         '''
-
+        Function accepts 2 products and returns the number of users that purchased both
         '''
-
         pass
 
-    def getPurchasedItems(self, user_id: int):
+    def getNumOfPurchasesOfNone(self, prod1: Product, prod2: Product) -> int:
         '''
-        Function returns a dictionary of given users purchased items
+        Function accepts 2 products and returns the number of users that purchased none of the two
         '''
+        pass
 
-        orderedProducts = {}
-
-        for order in self.dp.orders:
-            if self.dp.orders[order].user_id == user_id:
-                for product in self.dp.orders[order].product_list:
-                    orderedProducts[product.id] = orderedProducts.get(
-                        product.id, 0) + 1
-
-        return orderedProducts
+    def getNumOfPurchasesOfOnlyOne(self, prod1: Product, prod2: Product) -> int:
+        '''
+        Function accepts 2 products and returns the number of users that purchased prod1 but didnt purchase prod2
+        '''
+        pass
