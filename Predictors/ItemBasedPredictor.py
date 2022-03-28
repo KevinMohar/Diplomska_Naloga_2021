@@ -1,3 +1,4 @@
+from collections import defaultdict
 from DataModels import Product
 from Predictors.Predictor import Predictor
 from DataProvider import DataProvider
@@ -9,7 +10,6 @@ class ItemBasedPredictor(Predictor):
     '''
 
     threshold: float  # minimal similartiy threshold between two items
-    usersProducts = {}
 
     def __init__(self,  dp: DataProvider, threshold: float = 0) -> None:
         self.threshold = threshold
@@ -48,16 +48,7 @@ class ItemBasedPredictor(Predictor):
                         self.productSimilarities.update(
                             {(prod1, prod2): self.productSimilarities[(prod2, prod1)]})
 
-        #
-        for product in self.data:
-            numOfWeights = 0  # vsota podobnosti
-            sumOfWeights = 0  # vsota uteži
-            for pair in self.productSimilarities:
-                if pair[1] == product and self.productSimilarities[pair] > 0:
-                    numOfWeights += self.productSimilarities[pair]
-                    sumOfWeights += self.productSimilarities[pair] * \
-                        self.movies[pair[0]][userID]
-            self.ratings.update({product: sumOfWeights/numOfWeights})
+        # reccomend products
 
     def fit(self, products: list):
         '''
@@ -67,20 +58,64 @@ class ItemBasedPredictor(Predictor):
         self.data = products
         self.productSimilarities = {}
 
+    def getYQdata(self, prod1: Product, prod2: Product):
+        '''
+        Function accepts 2 products and returns dictionary containing user_id : touple key-value pairs.
+        Touple contains 2 bools. First bool determines if user has purchased prod1 and second bool determines
+            if user has purchased prod2 
+        '''
+
+        userOrders = defaultdict(lambda: (False, False))
+
+        for order in self.dp.orders:
+            if prod1 in order.products:
+                userOrders.update(
+                    {order.user_id: (True, userOrders[order.user_id][1])})
+
+            if prod2 in order.products:
+                userOrders.update(
+                    {order.user_id: (userOrders[order.user_id][0], True)})
+
+        return userOrders
+
     def getNumOfPurchasesOfBothItems(self, prod1: Product, prod2: Product) -> int:
         '''
         Function accepts 2 products and returns the number of users that purchased both
         '''
-        pass
+
+        userOrders = self.getYQdata(prod1, prod2)
+
+        count = 0
+        for x, y in userOrders:
+            if x and y:
+                count += 1
+
+        return count
 
     def getNumOfPurchasesOfNone(self, prod1: Product, prod2: Product) -> int:
         '''
         Function accepts 2 products and returns the number of users that purchased none of the two
         '''
-        pass
+
+        userOrders = self.getYQdata(prod1, prod2)
+
+        count = 0
+        for x, y in userOrders:
+            if not x and not y:
+                count += 1
+
+        return count
 
     def getNumOfPurchasesOfOnlyOne(self, prod1: Product, prod2: Product) -> int:
         '''
         Function accepts 2 products and returns the number of users that purchased prod1 but didnt purchase prod2
         '''
-        pass
+
+        userOrders = self.getYQdata(prod1, prod2)
+
+        count = 0
+        for x, y in userOrders:
+            if x and not y:
+                count += 1
+
+        return count
