@@ -36,8 +36,15 @@ class ItemBasedPredictor(Predictor):
                             prod2, prod1)
 
                         # Youls' Q
-                        similarity = ((purchasedBoth * purchasedNone) - (purchasedFirst*purchasedSecond))/(
-                            (purchasedBoth * purchasedNone)+(purchasedFirst*purchasedSecond))
+                        a = ((purchasedBoth * purchasedNone) -
+                             (purchasedFirst*purchasedSecond))
+                        b = ((purchasedBoth * purchasedNone) +
+                             (purchasedFirst*purchasedSecond))
+
+                        similarity = 0
+
+                        if b > 0:
+                            similarity = a/b
 
                         if similarity < self.threshold or similarity < 0:
                             similarity = 0
@@ -50,12 +57,13 @@ class ItemBasedPredictor(Predictor):
                             {(prod1, prod2): self.productSimilarities[(prod2, prod1)]})
 
         # reccomend products
+        a = 1
 
     def getYQdata(self, prod1: int, prod2: int):
         '''
         Function accepts 2 products and returns dictionary containing user_id : touple key-value pairs.
         Touple contains 2 bools. First bool determines if user has purchased prod1 and second bool determines
-            if user has purchased prod2 
+            if user has purchased prod2
         '''
 
         userOrders = defaultdict(lambda: (False, False))
@@ -63,11 +71,11 @@ class ItemBasedPredictor(Predictor):
         for order in self.dp.orders:
             if prod1 in [x.id for x in self.dp.orders[order].product_list]:
                 userOrders.update(
-                    {order.user_id: (True, userOrders[order.user_id][1])})
+                    {self.dp.orders[order].user_id: (True, userOrders[self.dp.orders[order].user_id][1])})
 
             if prod2 in [x.id for x in self.dp.orders[order].product_list]:
                 userOrders.update(
-                    {order.user_id: (userOrders[order.user_id][0], True)})
+                    {self.dp.orders[order].user_id: (userOrders[self.dp.orders[order].user_id][0], True)})
 
         return userOrders
 
@@ -79,8 +87,8 @@ class ItemBasedPredictor(Predictor):
         userOrders = self.getYQdata(prod1, prod2)
 
         count = 0
-        for x, y in userOrders:
-            if x and y:
+        for element in userOrders:
+            if userOrders[element][0] and userOrders[element][1]:
                 count += 1
 
         return count
@@ -93,8 +101,8 @@ class ItemBasedPredictor(Predictor):
         userOrders = self.getYQdata(prod1, prod2)
 
         count = 0
-        for x, y in userOrders:
-            if not x and not y:
+        for element in userOrders:
+            if not userOrders[element][0] and not userOrders[element][1]:
                 count += 1
 
         return count
@@ -107,8 +115,8 @@ class ItemBasedPredictor(Predictor):
         userOrders = self.getYQdata(prod1, prod2)
 
         count = 0
-        for x, y in userOrders:
-            if x and not y:
+        for element in userOrders:
+            if userOrders[element][0] and not userOrders[element][1]:
                 count += 1
 
         return count
