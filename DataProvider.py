@@ -196,6 +196,13 @@ class DataProvider():
         '''
         return self.products.get(id, None)
 
+    def findProducts(self, ids: list):
+        '''
+        Function retrives products with matching ids from dictionary
+        '''
+        prods = [self.products.get(id, None) for id in ids]
+        return prods
+
     def __storeDataToPickle(self):
         '''
         Function stores data from dictionaries to corresponding .pickle files
@@ -267,3 +274,24 @@ class DataProvider():
             os.remove(DataPaths.productsPickle)
         if os.path.isfile(DataPaths.ordersPickle):
             os.remove(DataPaths.ordersPickle)
+
+    def storeSimilaritiesToPickle(self, simDict):
+        '''
+        Function stores dict of similarities to .pickle file
+        '''
+
+        with open(DataPaths.similaritiesPicke, "wb") as outfile:
+            pickle.dump(simDict, outfile, pickle.HIGHEST_PROTOCOL)
+
+    def getSimilaritiesFromPickle(self):
+        '''
+        Function reads similarities from .pickle file and stores them in dictionary
+        '''
+
+        sim = {}
+        if os.path.isfile(DataPaths.similaritiesPicke):
+            with open(DataPaths.sampleSubmissionCSV, "rb") as reader:
+                data = pickle.load(reader)
+                for obj in data:
+                    sim[obj.id] = obj
+        return sim

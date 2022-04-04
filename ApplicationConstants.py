@@ -15,8 +15,9 @@ class DataPaths():
     # pickle files
     aislesPickle = "Data/aisles.pickle"
     departmentsPickle = "Data/departments.pickle"
-    productsPickle= "Data/products.pickle"
-    ordersPickle= "Data/orders.pickle"
+    productsPickle = "Data/products.pickle"
+    ordersPickle = "Data/orders.pickle"
+    similaritiesPicke = "Data/sim.pickle"
 
 
 class UserFiles():

@@ -14,47 +14,53 @@ class ItemBasedPredictor(Predictor):
     def __init__(self,  dp: DataProvider, threshold: float = 0) -> None:
         self.threshold = threshold
         self.dp = dp
-        self.productSimilarities = {}
+        self.productSimilarities = self.dp.getSimilaritiesFromPickle()
+        self.bothProductPurchases = {}
+        self.noneProductPurchases = {}
+        self.firstButNotSecondProductPurchases = {}
 
     def predict(self, numOfProducts: int, user_id: int, basket: list):
         '''
         Function returns list of N products not in users current basket using item-item CF
         '''
+        products = self.dp.findProducts(basket)
 
-        for prod1 in self.dp.products:
-            for prod2 in self.dp.products:
-                if prod1 != prod2:
-                    if (prod1, prod2) not in self.productSimilarities and (prod2, prod1) not in self.productSimilarities:
-                        # calc sim
-                        purchasedBoth = self.getNumOfPurchasesOfBothItems(
-                            prod1, prod2)
-                        purchasedNone = self.getNumOfPurchasesOfNone(
-                            prod1, prod2)
-                        purchasedFirst = self.getNumOfPurchasesOfOnlyOne(
-                            prod1, prod2)
-                        purchasedSecond = self.getNumOfPurchasesOfOnlyOne(
-                            prod2, prod1)
+        if self.productSimilarities == None or len(self.productSimilarities.keys()) == 0:
+            for prod1 in products:
+                for prod2 in self.dp.products:
+                    if prod1 != prod2:
+                        if (prod1, prod2) not in self.productSimilarities and (prod2, prod1) not in self.productSimilarities:
+                            # calc sim
+                            purchasedBoth = self.getNumOfPurchasesOfBothItems(
+                                prod1, prod2)
+                            purchasedNone = self.getNumOfPurchasesOfNone(
+                                prod1, prod2)
+                            purchasedFirst = self.getNumOfPurchasesOfOnlyOne(
+                                prod1, prod2)
+                            purchasedSecond = self.getNumOfPurchasesOfOnlyOne(
+                                prod2, prod1)
 
-                        # Youls' Q
-                        a = ((purchasedBoth * purchasedNone) -
-                             (purchasedFirst*purchasedSecond))
-                        b = ((purchasedBoth * purchasedNone) +
-                             (purchasedFirst*purchasedSecond))
+                            # Youls' Q
+                            a = ((purchasedBoth * purchasedNone) -
+                                 (purchasedFirst*purchasedSecond))
+                            b = ((purchasedBoth * purchasedNone) +
+                                 (purchasedFirst*purchasedSecond))
 
-                        similarity = 0
-
-                        if b > 0:
-                            similarity = a/b
-
-                        if similarity < self.threshold or similarity < 0:
                             similarity = 0
 
-                        self.productSimilarities.update(
-                            {(prod1, prod2): similarity})
+                            if b > 0:
+                                similarity = a/b
 
-                    elif (prod1, prod2) not in self.productSimilarities and (prod2, prod1) in self.productSimilarities:
-                        self.productSimilarities.update(
-                            {(prod1, prod2): self.productSimilarities[(prod2, prod1)]})
+                            if similarity < self.threshold or similarity < 0:
+                                similarity = 0
+
+                            self.productSimilarities.update(
+                                {(prod1, prod2): similarity})
+
+                        elif (prod1, prod2) not in self.productSimilarities and (prod2, prod1) in self.productSimilarities:
+                            self.productSimilarities.update(
+                                {(prod1, prod2): self.productSimilarities[(prod2, prod1)]})
+            self.dp.storeSimilaritiesToPickle(self.productSimilarities)
 
         # reccomend products
         a = 1
@@ -83,6 +89,10 @@ class ItemBasedPredictor(Predictor):
         '''
         Function accepts 2 products and returns the number of users that purchased both
         '''
+        if (prod1, prod2) in self.bothProductPurchases:
+            return self.bothProductPurchases[(prod1, prod2)]
+        if (prod2, prod1) in self.bothProductPurchases:
+            return self.bothProductPurchases[(prod2, prod1)]
 
         userOrders = self.getYQdata(prod1, prod2)
 
@@ -91,12 +101,19 @@ class ItemBasedPredictor(Predictor):
             if userOrders[element][0] and userOrders[element][1]:
                 count += 1
 
+        self.bothProductPurchases.update({(prod1, prod2): count})
+        self.bothProductPurchases.update({(prod2, prod1): count})
+
         return count
 
     def getNumOfPurchasesOfNone(self, prod1: int, prod2: int) -> int:
         '''
         Function accepts 2 products and returns the number of users that purchased none of the two
         '''
+        if (prod1, prod2) in self.noneProductPurchases:
+            return self.noneProductPurchases[(prod1, prod2)]
+        if (prod2, prod1) in self.noneProductPurchases:
+            return self.noneProductPurchases[(prod2, prod1)]
 
         userOrders = self.getYQdata(prod1, prod2)
 
@@ -104,6 +121,9 @@ class ItemBasedPredictor(Predictor):
         for element in userOrders:
             if not userOrders[element][0] and not userOrders[element][1]:
                 count += 1
+
+        self.noneProductPurchases.update({(prod1, prod2): count})
+        self.noneProductPurchases.update({(prod2, prod1): count})
 
         return count
 
