@@ -1,4 +1,5 @@
 from Predictors.Predictor import Predictor
+from ApplicationConstants import Logging
 
 
 class Recommender:
@@ -19,6 +20,8 @@ class Recommender:
         '''
         Function reccomends top N products for given user
         '''
+
+        print(Logging.INFO + "Generating reccomendations...")
         if N > 0:
             return self.predictor.predict(N, userID, basket)
 

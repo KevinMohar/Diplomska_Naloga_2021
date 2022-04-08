@@ -13,6 +13,7 @@ class DataProvider():
     products = {}
     orders = {}
     __emptyOrders = {}
+    usersProducts = {}
 
     threads = []
 
@@ -58,12 +59,14 @@ class DataProvider():
             self.__storeAislesToPickle()
             self.__storeDepartmentsToPickle()
             self.__storeProductsToPickle()
+            self.__storeUsersProductsToPickle()
 
         else:
             self.__getAislesFromPickle()
             self.__getDepartmentsFromPickle()
             self.__getProductsFromPickle()
             self.__getOrdersFromPickle()
+            self.__getUsersProductsFromPickle()
             print(Logging.INFO + "Restored data from .pickle files!")
 
     def __getAisles(self):
@@ -140,6 +143,12 @@ class DataProvider():
                 product = self.__findProduct(int(row[1]))
                 if product:
                     self.orders[order_id].addProduct(product)
+                    if(self.orders[order_id].user_id in self.usersProducts):
+                        self.usersProducts[self.orders[order_id].user_id].append(
+                            product.id)
+                    else:
+                        self.usersProducts[self.orders[order_id].user_id] = [
+                            product.id]
 
     def __getOrdersFromPickle(self):
         '''
@@ -176,6 +185,14 @@ class DataProvider():
             data = pickle.load(reader)
             for obj in data:
                 self.products[obj.id] = obj
+
+    def __getUsersProductsFromPickle(self):
+        '''
+        Function reads user ordered product from pickle to corresponding dictionary
+        '''
+        with open(DataPaths.usersProductsPicke, "rb") as reader:
+            data = pickle.load(reader)
+            self.usersProducts = data
 
     def __findAisle(self, id: int):
         '''
@@ -261,6 +278,14 @@ class DataProvider():
         with open(DataPaths.ordersPickle, "wb") as outfile:
             pickle.dump(outOrders, outfile, pickle.HIGHEST_PROTOCOL)
 
+    def __storeUsersProductsToPickle(self):
+        '''
+        Function stores user ordered product from dictionary to corresponding .pickle file
+        '''
+
+        with open(DataPaths.usersProductsPicke, "wb") as outfile:
+            pickle.dump(self.usersProducts, outfile, pickle.HIGHEST_PROTOCOL)
+
     def __deleteAllPickle(self):
         '''
         Function deletes all .pickle files
@@ -274,6 +299,10 @@ class DataProvider():
             os.remove(DataPaths.productsPickle)
         if os.path.isfile(DataPaths.ordersPickle):
             os.remove(DataPaths.ordersPickle)
+        if os.path.isfile(DataPaths.similaritiesPicke):
+            os.remove(DataPaths.similaritiesPicke)
+        if os.path.isfile(DataPaths.usersProductsPicke):
+            os.remove(DataPaths.usersProductsPicke)
 
     def storeSimilaritiesToPickle(self, simDict):
         '''
@@ -291,6 +320,7 @@ class DataProvider():
         sim = {}
         if os.path.isfile(DataPaths.similaritiesPicke):
             with open(DataPaths.sampleSubmissionCSV, "rb") as reader:
+                reader.seek(0)
                 data = pickle.load(reader)
                 for obj in data:
                     sim[obj.id] = obj

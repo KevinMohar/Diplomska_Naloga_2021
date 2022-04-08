@@ -18,6 +18,7 @@ class DataPaths():
     productsPickle = "Data/products.pickle"
     ordersPickle = "Data/orders.pickle"
     similaritiesPicke = "Data/sim.pickle"
+    usersProductsPicke = "Data/usersProducts.pickle"
 
 
 class UserFiles():
