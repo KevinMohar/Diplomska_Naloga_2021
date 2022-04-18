@@ -1,5 +1,5 @@
 from ApplicationConstants import DataPaths, Logging
-from DataModels import Aisle, Department, Product, Order
+from DataModels import Aisle, Department, Product, Order, Similarity
 import csv
 import os
 import threading
@@ -319,9 +319,7 @@ class DataProvider():
 
         sim = {}
         if os.path.isfile(DataPaths.similaritiesPicke):
-            with open(DataPaths.sampleSubmissionCSV, "rb") as reader:
-                reader.seek(0)
-                data = pickle.load(reader)
-                for obj in data:
-                    sim[obj.id] = obj
+            with open(DataPaths.similaritiesPicke, "rb") as reader:
+                sim = pickle.load(reader)
+
         return sim

@@ -1,7 +1,9 @@
 from collections import defaultdict
+from math import prod
 from DataModels import Product
 from Predictors.Predictor import Predictor
 from DataProvider import DataProvider
+import operator
 
 
 class ItemBasedPredictor(Predictor):
@@ -11,8 +13,7 @@ class ItemBasedPredictor(Predictor):
 
     threshold: float  # minimal similartiy threshold between two items
 
-    def __init__(self,  dp: DataProvider, threshold: float = 0) -> None:
-        self.threshold = threshold
+    def __init__(self,  dp: DataProvider) -> None:
         self.dp = dp
         self.productSimilarities = self.dp.getSimilaritiesFromPickle()
         self.bothProductPurchases = {}
@@ -24,24 +25,18 @@ class ItemBasedPredictor(Predictor):
         Function returns list of N products not in users current basket using item-item CF
         '''
         basketProducts = self.dp.findProducts(basket)
-        products = {}
-        for x in self.dp.products:
-            if len(products) < 10:
-                products[self.dp.products[x].id] = self.dp.products[x]
-            else:
-                break
 
         if self.productSimilarities == None or len(self.productSimilarities.keys()) == 0:
             self.productSimilarities = {}
             for prod1 in basketProducts:
-                for prod2 in products:
+                for prod2 in self.dp.products:
                     if prod1.id != prod2:
-                        if (prod1.id, prod2) not in self.productSimilarities and (prod2, prod1.id) not in self.productSimilarities:
+                        if (prod1.id, prod2) not in self.productSimilarities or (prod2, prod1.id) not in self.productSimilarities:
                             # calc sim
                             purchasedBoth, purchasedNone, purchasedFirst, purchasedSecond = self.getNumOfPurchases(
                                 prod1.id, prod2)
 
-                            # Youls' Q
+                            # Yules' Q
                             a = ((purchasedBoth * purchasedNone) -
                                  (purchasedFirst*purchasedSecond))
                             b = ((purchasedBoth * purchasedNone) +
@@ -49,22 +44,43 @@ class ItemBasedPredictor(Predictor):
 
                             similarity = 0
 
+                            # value between -1 and 1
+                            # Q = 0: no association between the variables.
+                            # Q = 0 to ± 0.29: a negligible or very small association
+                            # Q = from -0.30 to -0.49 or from 0.30 to 0.49: a moderate association between the variables.
+                            # Q = 0.50 and 0.69 or -0.50 and -0.69: a substantial association between the variable
+                            # Q > 0.70, or < -0.70: a very strong association.
+                            # Q = 1 or -1 , there is a perfect association between the events
+                            # A positive Q points to a positive correlation,  A negative Q points to a negative correlation
                             if b != 0:
                                 similarity = a/b
 
-                            # if similarity < self.threshold or similarity < 0:
-                             #   similarity = 0
+                            self.productSimilarities[(
+                                prod1.id, prod2)] = similarity
+                            self.productSimilarities[(
+                                prod2, prod1.id)] = similarity
 
-                            self.productSimilarities.update(
-                                {(prod1.id, prod2): similarity})
-
-                        elif (prod1.id, prod2) not in self.productSimilarities and (prod2, prod1.id) in self.productSimilarities:
-                            self.productSimilarities.update(
-                                {(prod1.id, prod2): self.productSimilarities[(prod2, prod1.id)]})
             self.dp.storeSimilaritiesToPickle(self.productSimilarities)
 
         # reccomend products
-        a = self.productSimilarities
+        sortedDict = dict(sorted(self.productSimilarities.items(),
+                          key=operator.itemgetter(1), reverse=True))
+
+        recommendedProducts = []
+        for key in sortedDict:
+            prod1 = key[0]
+            prod2 = key[1]
+
+            if prod1 not in recommendedProducts and prod1 not in basket and len(recommendedProducts) < numOfProducts:
+                recommendedProducts.append(prod1)
+
+            if prod2 not in recommendedProducts and prod2 not in basket and len(recommendedProducts) < numOfProducts:
+                recommendedProducts.append(prod2)
+
+            if len(recommendedProducts) >= numOfProducts:
+                break
+
+        return recommendedProducts
 
     def getNumOfPurchases(self, prod1: int, prod2: int):
         '''

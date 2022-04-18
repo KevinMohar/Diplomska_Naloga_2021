@@ -1,4 +1,5 @@
 import json
+from tokenize import Double
 
 
 class Aisle():
@@ -15,6 +16,9 @@ class Aisle():
     def __repr__(self):
         return f"Aisle {self.id}: {self.name}\n"
 
+    def reprJSON(self):
+        return dict(id=self.id, name=self.name)
+
 
 class Department():
     '''
@@ -29,6 +33,9 @@ class Department():
 
     def __repr__(self):
         return f"Department {self.id}: {self.name}\n"
+
+    def reprJSON(self):
+        return dict(id=self.id, name=self.name)
 
 
 class Product():
@@ -48,6 +55,9 @@ class Product():
 
     def __repr__(self):
         return f"Product {self.id}:\n    Name: {self.name}\n    Aisle: {self.aisle.name}(id:{self.aisle.id})\n    Department: {self.department.name}(id:{self.department.id})\n"
+
+    def reprJSON(self):
+        return dict(id=self.id, name=self.name, aisle=self.aisle, department=self.department)
 
 
 class Order():
@@ -77,5 +87,27 @@ class Order():
     def __repr__(self):
         return f"Order {self.id}: num of products - {len(self.product_list)}\n"
 
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__,
+                          sort_keys=True, indent=4)
+
     def addProduct(self, product: Product):
         self.product_list.append(product)
+
+    def reprJSON(self):
+        return dict(id=self.id, user_id=self.user_id, eval_set=self.eval_set, order_number=self.order_number, order_dow=self.order_dow,
+                    order_hour_of_day=self.order_hour_of_day, days_since_prior_order=self.days_since_prior_order, product_list=self.product_list)
+
+
+class Similarity():
+    product1: int
+    product2: int
+    similarity: Double
+
+    def __init__(self, prod1: int, prod2: int, sim: Double) -> None:
+        self.product1 = prod1
+        self.product2 = prod2
+        self.similarity = sim
+
+    def __repr__(self):
+        return f"Similarity ({self.product1},{self.product2}): {self.similarity}\n"

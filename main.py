@@ -6,7 +6,7 @@ from UI.UImanager import UImanager
 
 recommendations = {}
 
-dp = DataProvider(True)
+dp = DataProvider(False)
 uiManager = UImanager()
 
 # simple context based
