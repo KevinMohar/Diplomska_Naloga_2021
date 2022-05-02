@@ -87,7 +87,7 @@ def getNumOfPurchases(prod1: int, prod2: int):
 
 def PreProcessItemBasedData(products):
     for prod1 in products:
-        for prod2 in products:
+        for prod2 in dp.products:
             if prod1 != prod2:
                 sim = 0
 
@@ -104,7 +104,7 @@ def PreProcessItemBasedData(products):
                     productSimilarities[(prod1, prod2)] = sim
                     productSimilarities[(prod2, prod1)] = sim
 
-                if sim > 0:
+                if sim > MIN_SIMILARITY_TRESHOLD:
                     dp.storeSimilaritiesToPickle(
                         {(prod1, prod2): sim}, global_lock)
 
@@ -124,8 +124,9 @@ def split_dict_equally(input_dict, chunks=2):
 
 
 dp = DataProvider(False)
+
 NUM_OF_THREADS = 200
-global_lock = threading.Lock()
+MIN_SIMILARITY_TRESHOLD = 0
 
 # calculate similarities with Youl's Q for Item based recommendation
 bothProductPurchases = {}
@@ -137,6 +138,7 @@ productSimilarities = {}
 prepData = split_dict_equally(dp.products, NUM_OF_THREADS)
 
 threads = []
+global_lock = threading.Lock()
 
 for dataset in prepData:
     thread = threading.Thread(
