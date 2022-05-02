@@ -304,13 +304,20 @@ class DataProvider():
         if os.path.isfile(DataPaths.usersProductsPicke):
             os.remove(DataPaths.usersProductsPicke)
 
-    def storeSimilaritiesToPickle(self, simDict):
+    def storeSimilaritiesToPickle(self, simDict, global_lock):
         '''
         Function stores dict of similarities to .pickle file
         '''
 
-        with open(DataPaths.similaritiesPicke, "wb") as outfile:
+        while global_lock.locked():
+            continue
+
+        global_lock.acquire()
+
+        with open(DataPaths.similaritiesPicke, "ab") as outfile:
             pickle.dump(simDict, outfile, pickle.HIGHEST_PROTOCOL)
+
+        global_lock.release()
 
     def getSimilaritiesFromPickle(self):
         '''
@@ -320,6 +327,12 @@ class DataProvider():
         sim = {}
         if os.path.isfile(DataPaths.similaritiesPicke):
             with open(DataPaths.similaritiesPicke, "rb") as reader:
-                sim = pickle.load(reader)
+                try:
+                    while True:
+                        data = pickle.load(reader)
+                        sim.update(data)
+
+                except EOFError:
+                    pass
 
         return sim
