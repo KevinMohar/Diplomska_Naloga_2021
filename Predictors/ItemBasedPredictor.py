@@ -12,18 +12,26 @@ class ItemBasedPredictor(Predictor):
     '''
 
     threshold: float  # minimal similartiy threshold between two items
+    isOptimized = False
 
-    def __init__(self,  dp: DataProvider) -> None:
+    def __init__(self,  dp: DataProvider, isOptimized: bool) -> None:
         self.dp = dp
-        self.productSimilarities = self.dp.getSimilaritiesFromPickle()
         self.bothProductPurchases = {}
         self.noneProductPurchases = {}
         self.oneProductPurchases = {}
+        self.isOptimized = isOptimized
 
     def predict(self, numOfProducts: int, user_id: int, basket: list):
         '''
         Function returns list of N recommended products not in users current basket using item-item CF
         '''
+
+        if self.isOptimized:
+            # read from db
+            self.productSimilarities = self.dp.getSimilaritiesFromPickle()
+        else:
+            # calculate similarities for products in basket
+
         if self.productSimilarities == None or len(self.productSimilarities.keys()) == 0:
             return recommendedProducts
 

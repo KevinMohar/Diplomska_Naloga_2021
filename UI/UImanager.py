@@ -2,7 +2,7 @@ from ApplicationConstants import UserFiles
 import json
 from JSONEncoder import Encoder
 from Predictors.Predictor import Predictor
-from Predictors.SimpleContextBasedPredictor import SimpleContextBasedPredictor
+from Predictors.SimpleContextBasedPredictor import SimpleContentBasedPredictor
 from Predictors.ItemBasedPredictor import ItemBasedPredictor
 from Recommender import Recommender
 from DataProvider import DataProvider
@@ -17,8 +17,9 @@ class UImanager():
     user_id: int
     products: list
     dp = DataProvider(False)
+    isOptimized = False
 
-    def __init__(self) -> None:
+    def __init__(self, isOptimized: bool) -> None:
         '''
         Constructor reads users id and list of products in current basket from input file
         '''
@@ -29,6 +30,8 @@ class UImanager():
         self.user_id = data["user_id"]
         self.products = data["products"]
         f.close()
+
+        self.isOptimized = isOptimized
 
     def getBasket(self):
         '''
@@ -61,23 +64,20 @@ class UImanager():
 
     def recommendProducts(self, numOfProd: int):
         '''
-        Function returns a list of 2*N recommended products using provided predictor
+        Function returns a list of 2N recommended products using each method
         '''
 
         recommendations = {}
 
-        N1 = numOfProd // 2
-        N2 = numOfProd // 2 if numOfProd % 2 == 0 else (numOfProd // 2) + 1
-
-        SCBpredictor = SimpleContextBasedPredictor(self.dp)
+        SCBpredictor = SimpleContentBasedPredictor(self.dp)
         recommender = Recommender(SCBpredictor)
         SCBrecommendations = recommender.recommend(
-            self.user_id, self.products, N1)
+            self.user_id, self.products, numOfProd)
 
         IBpredictor = ItemBasedPredictor(self.dp)
         recommender = Recommender(IBpredictor)
         IBrecommendations = recommender.recommend(
-            self.user_id, self.products, N2)
+            self.user_id, self.products, numOfProd)
 
         recommendations.update(SCBrecommendations)
         recommendations.update(IBrecommendations)
