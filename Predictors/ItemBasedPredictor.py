@@ -31,6 +31,7 @@ class ItemBasedPredictor(Predictor):
             self.productSimilarities = self.dp.getSimilaritiesFromPickle()
         else:
             # calculate similarities for products in basket
+            pass
 
         if self.productSimilarities == None or len(self.productSimilarities.keys()) == 0:
             return recommendedProducts
