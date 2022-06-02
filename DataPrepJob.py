@@ -1,3 +1,5 @@
+import itertools
+import operator
 from DataProvider import DataProvider
 from ApplicationConstants import Logging
 import threading
@@ -125,16 +127,15 @@ def split_dict_equally(input_dict, chunks=2):
 
 dp = DataProvider(False)
 
-NUM_OF_THREADS = 200
+NUM_OF_THREADS = 64
 MIN_SIMILARITY_TRESHOLD = 0
+
 
 # calculate similarities with Youl's Q for Item based recommendation
 bothProductPurchases = {}
 noneProductPurchases = {}
 oneProductPurchases = {}
-
 productSimilarities = {}
-
 prepData = split_dict_equally(dp.products, NUM_OF_THREADS)
 
 threads = []
@@ -149,5 +150,32 @@ print(Logging.INFO + "Starting preprocesing...")
 [thread.start() for thread in threads]
 [thread.join() for thread in threads]
 
+# store 1, 10, 50, 100 most similar items for each item
+productSim = dp.getSimilaritiesFromPickle()
+itemSimilarites1 = {}
+itemSimilarites10 = {}
+itemSimilarites50 = {}
+itemSimilarites100 = {}
+
+for product in dp.products:
+    sim = {}
+
+    for k1, k2 in productSim:
+        if k1 == product:
+            sim[k2] = productSim[(k1, k2)]
+
+    sortedDict = dict(sorted(sim.items(),
+                             key=operator.itemgetter(1), reverse=True))
+
+    itemSimilarites1[product] = list(sortedDict)[:1]
+    itemSimilarites10[product] = list(sortedDict)[:10]
+    itemSimilarites50[product] = list(sortedDict)[:50]
+    itemSimilarites100[product] = list(sortedDict)[:100]
+
+# store data
+dp.storeItemSimilaritiesToPickle(itemSimilarites1, 1)
+dp.storeItemSimilaritiesToPickle(itemSimilarites10, 10)
+dp.storeItemSimilaritiesToPickle(itemSimilarites50, 50)
+dp.storeItemSimilaritiesToPickle(itemSimilarites100, 100)
 
 print(Logging.INFO + "DONE preprocesing data!!!")

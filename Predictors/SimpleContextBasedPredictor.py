@@ -3,14 +3,17 @@ from DataProvider import DataProvider
 import heapq
 
 
-class SimpleContextBasedPredictor(Predictor):
+class SimpleContentBasedPredictor(Predictor):
     '''
     Class SimpleContextBasedPredictor represents a method that checks users past purchases and returns N
     most popular products 
     '''
 
-    def __init__(self, dp: DataProvider) -> None:
+    isOptimized = False
+
+    def __init__(self, dp: DataProvider, isOptimized: bool) -> None:
         self.dp = dp
+        self.isOptimized = isOptimized
 
     def predict(self, N: int, user_id: int, basket: list):
         '''

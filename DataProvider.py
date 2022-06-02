@@ -336,3 +336,14 @@ class DataProvider():
                     pass
 
         return sim
+
+    def storeItemSimilaritiesToPickle(self, simDict, amount: int):
+        '''
+        Function stores dict of similarities to .pickle file
+        '''
+
+        file = {1: DataPaths.itemSimilarities1, 10: DataPaths.itemSimilarities10,
+                50: DataPaths.itemSimilarities50, 100: DataPaths.itemSimilarities100}[amount]
+
+        with open(file, "ab") as outfile:
+            pickle.dump(simDict, outfile, pickle.HIGHEST_PROTOCOL)
