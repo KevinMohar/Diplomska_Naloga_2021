@@ -1,7 +1,7 @@
 ## Pridobitev podatkov
 
 Zaradi velikosti posamezne datoteke, datotek s podatki ni bilo možno vključiti v repozatorij. Zahtevane datoteke prenesite iz naslednje Drive povezave v ta direktorij (Data/) in jih odpakirajte:  
-[https://drive.google.com/file/d/1Cdl5-ibWNrLl7KQpyew8M12ESPTvNvZL/view?usp=sharing](https://drive.google.com/file/d/1Cdl5-ibWNrLl7KQpyew8M12ESPTvNvZL/view?usp=sharing)
+[https://drive.google.com/file/d/1QQOVyMqztDZCayLTT6Q5AWg5poBZIWff/view?usp=sharing](https://drive.google.com/file/d/1QQOVyMqztDZCayLTT6Q5AWg5poBZIWff/view?usp=sharing)
 
 Datoteke potrebne za delovanje aplikacije:
 
