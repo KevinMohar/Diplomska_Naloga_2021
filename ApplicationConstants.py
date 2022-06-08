@@ -19,10 +19,16 @@ class DataPaths():
     ordersPickle = "Data/orders.pickle"
     similaritiesPicke = "Data/similarityBetweenProducts.pickle"
     usersProductsPicke = "Data/usersProducts.pickle"
+
     itemSimilarities1 = "Data/itemSimilarities1.pickle"
     itemSimilarities10 = "Data/itemSimilarities10.pickle"
     itemSimilarities50 = "Data/itemSimilarities50.pickle"
     itemSimilarities100 = "Data/itemSimilarities100.pickle"
+
+    usersPurchases1 = "Data/usersPurchases1.pickle"
+    usersPurchases10 = "Data/usersPurchases10.pickle"
+    usersPurchases50 = "Data/usersPurchases50.pickle"
+    usersPurchases100 = "Data/usersPurchases100.pickle"
 
 
 class UserFiles():

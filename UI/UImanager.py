@@ -2,7 +2,7 @@ from ApplicationConstants import UserFiles
 import json
 from JSONEncoder import Encoder
 from Predictors.Predictor import Predictor
-from Predictors.SimpleContextBasedPredictor import SimpleContentBasedPredictor
+from Predictors.SimpleContentBasedPredictor import SimpleContentBasedPredictor
 from Predictors.ItemBasedPredictor import ItemBasedPredictor
 from Recommender import Recommender
 from DataProvider import DataProvider
@@ -17,9 +17,10 @@ class UImanager():
     user_id: int
     products: list
     dp = DataProvider(False)
-    isOptimized = False
+    isOptimized: bool = False
+    storeItemSize: int = 1
 
-    def __init__(self, isOptimized: bool) -> None:
+    def __init__(self, isOptimized: bool, storeItemSize: int) -> None:
         '''
         Constructor reads users id and list of products in current basket from input file
         '''
@@ -32,6 +33,7 @@ class UImanager():
         f.close()
 
         self.isOptimized = isOptimized
+        self.storeItemSize = storeItemSize
 
     def getBasket(self):
         '''
@@ -69,7 +71,8 @@ class UImanager():
 
         recommendations = {}
 
-        SCBpredictor = SimpleContentBasedPredictor(self.dp)
+        SCBpredictor = SimpleContentBasedPredictor(
+            self.dp, self.isOptimized, self.storeItemSize)
         recommender = Recommender(SCBpredictor)
         SCBrecommendations = recommender.recommend(
             self.user_id, self.products, numOfProd)

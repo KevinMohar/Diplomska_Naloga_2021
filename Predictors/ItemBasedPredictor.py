@@ -13,13 +13,15 @@ class ItemBasedPredictor(Predictor):
 
     threshold: float  # minimal similartiy threshold between two items
     isOptimized = False
+    storeItemSize: int
 
-    def __init__(self,  dp: DataProvider, isOptimized: bool) -> None:
+    def __init__(self,  dp: DataProvider, isOptimized: bool, storeItemSize: int) -> None:
         self.dp = dp
         self.bothProductPurchases = {}
         self.noneProductPurchases = {}
         self.oneProductPurchases = {}
         self.isOptimized = isOptimized
+        self.storeItemSize = storeItemSize
 
     def predict(self, numOfProducts: int, user_id: int, basket: list):
         '''
@@ -28,6 +30,7 @@ class ItemBasedPredictor(Predictor):
 
         if self.isOptimized:
             # read from db
+            # dp.getProductSim(storeItemSize)
             self.productSimilarities = self.dp.getSimilaritiesFromPickle()
         else:
             # calculate similarities for products in basket

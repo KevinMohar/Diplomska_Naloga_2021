@@ -12,6 +12,7 @@ class DataProvider():
     departments = {}
     products = {}
     orders = {}
+    users = []
     __emptyOrders = {}
     usersProducts = {}
 
@@ -129,6 +130,8 @@ class DataProvider():
                 days_since_prior_order = int(row[6]) if len(row) == 6 else 0
                 self.orders[id] = Order(id, user_id, eval_set, order_number, order_dow,
                                         order_hour_of_day, days_since_prior_order)
+                if user_id not in self.users:
+                    self.users.append(user_id)
         print(Logging.INFO + "Finished parsing orders")
 
     def __getOrderedProducts(self):
@@ -347,3 +350,31 @@ class DataProvider():
 
         with open(file, "ab") as outfile:
             pickle.dump(simDict, outfile, pickle.HIGHEST_PROTOCOL)
+
+    def getUserOrderedProducts(self, user_id) -> dict:
+        '''
+        Function function finds and returnes users past purchases 
+        '''
+
+        orderdProducts = {}
+
+        for order in self.orders:
+            if user_id == self.orders[order].user_id:
+                for product in self.orders[order].product_list:
+                    if product.id in orderdProducts:
+                        orderdProducts[product.id] += 1
+                    else:
+                        orderdProducts[product.id] = 1
+
+        return orderdProducts
+
+    def storeUserPurchasesToPickle(self, usersPurchases: dict, amount: int):
+        '''
+        Function stores dict of user purchases to .pickle file
+        '''
+
+        file = {1: DataPaths.usersPurchases1, 10: DataPaths.usersPurchases10,
+                50: DataPaths.usersPurchases50, 100: DataPaths.usersPurchases100}[amount]
+
+        with open(file, "ab") as outfile:
+            pickle.dump(usersPurchases, outfile, pickle.HIGHEST_PROTOCOL)
