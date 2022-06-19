@@ -48,7 +48,6 @@ class DataProvider():
                 thread.join()
 
             self.__getOrderedProducts()
-            print(Logging.INFO + "Finished parsing ordered products")
 
             # clean orders
             for key in list(self.orders.keys()):
@@ -83,6 +82,7 @@ class DataProvider():
         '''
         Function reads aisles from .csv file and stores them in dictionary in apropriate data model
         '''
+        print(Logging.INFO + "Parsing aisles...")
         with open(DataPaths.aislesCSV, "r", encoding='UTF-8') as csvfile:
             reader = csv.reader(csvfile)
             next(reader)  # skip header
@@ -90,12 +90,13 @@ class DataProvider():
                 aisle_id = int(row[0])
                 aisle = str(row[1])
                 self.aisles[aisle_id] = Aisle(aisle_id, aisle)
-        print(Logging.INFO + "Finished parsing aisles")
+        print(Logging.INFO + "Finished parsing aisles!")
 
     def __getDepartments(self):
         '''
         Function reads departments from .csv file and stores them in dictionary in apropriate data model
         '''
+        print(Logging.INFO + "Parsing departments...")
         with open(DataPaths.departmentsCSV, "r", encoding='UTF-8') as csvfile:
             reader = csv.reader(csvfile)
             next(reader)  # skip header
@@ -104,12 +105,13 @@ class DataProvider():
                 department = str(row[1])
                 self.departments[department_id] = Department(
                     department_id, department)
-        print(Logging.INFO + "Finished parsing departments")
+        print(Logging.INFO + "Finished parsing departments!")
 
     def __getProducts(self):
         '''
         Function reads products from .csv file and stores them in dictionary in apropriate data model
         '''
+        print(Logging.INFO + "Parsing products...")
         with open(DataPaths.productsCSV, "r", encoding='UTF-8') as csvfile:
             reader = csv.reader(csvfile)
             next(reader)  # skip header
@@ -120,7 +122,7 @@ class DataProvider():
                 department = self.__findDepartment(int(row[3]))
                 self.products[product_id] = Product(
                     product_id, product, aisle, department)
-        print(Logging.INFO + "Finished parsing products")
+        print(Logging.INFO + "Finished parsing products!")
 
     def __getOrders(self, sampleSize):
         '''
@@ -129,13 +131,12 @@ class DataProvider():
         files = {1000: DataPaths.ordersCSV_filtered1k, 5000: DataPaths.ordersCSV_filtered5k,
                  10000: DataPaths.ordersCSV_filtered10k, 15000: DataPaths.ordersCSV_filtered15k}
 
+        print(Logging.INFO + "Parsing orders...")
+
         with open(files[sampleSize], "r", encoding='UTF-8') as csvfile:
             reader = csv.reader(csvfile)
             next(reader)  # skip header
             for row in reader:
-                if len(self.orders) % 100000 == 0:
-                    print(Logging.INFO + "Processed orders --> " +
-                          str(len(self.orders)))
                 id = int(row[0])
                 user_id = int(row[1])
                 eval_set = str(row[2])
@@ -149,7 +150,6 @@ class DataProvider():
                 # add user to list of users
                 if user_id not in self.users:
                     self.users.append(user_id)
-        print(Logging.INFO + "Finished parsing orders")
 
     def __getOrderedProducts(self):
         '''
@@ -161,7 +161,7 @@ class DataProvider():
             for row in reader:
                 order_id = int(row[0])
                 product = self.__findProduct(int(row[1]))
-                if product:
+                if product and order_id in self.orders:
                     self.orders[order_id].addProduct(product)
                     if(self.orders[order_id].user_id in self.usersProducts):
                         self.usersProducts[self.orders[order_id].user_id].append(
@@ -169,6 +169,23 @@ class DataProvider():
                     else:
                         self.usersProducts[self.orders[order_id].user_id] = [
                             product.id]
+
+        with open(DataPaths.orderProductsPriorCSV, "r", encoding='UTF-8') as csvfile:
+            reader = csv.reader(csvfile)
+            next(reader)  # skip header
+            for row in reader:
+                order_id = int(row[0])
+                product = self.__findProduct(int(row[1]))
+                if product and order_id in self.orders:
+                    self.orders[order_id].addProduct(product)
+                    if(self.orders[order_id].user_id in self.usersProducts):
+                        self.usersProducts[self.orders[order_id].user_id].append(
+                            product.id)
+                    else:
+                        self.usersProducts[self.orders[order_id].user_id] = [
+                            product.id]
+
+        print(Logging.INFO + "Finished parsing orders!")
 
     def __getOrdersFromPickle(self):
         '''
@@ -273,7 +290,7 @@ class DataProvider():
         if os.path.isfile(DataPaths.usersProductsPicke):
             os.remove(DataPaths.usersProductsPicke)
         if os.path.isfile(DataPaths.usersPickle):
-            os.remove(DataPaths.users)
+            os.remove(DataPaths.usersPickle)
 
     def storeSimilaritiesToPickle(self, simDict, global_lock):
         '''
@@ -313,8 +330,7 @@ class DataProvider():
         Function stores dict of similarities to .pickle file
         '''
 
-        file = {1: DataPaths.itemSimilarities1, 10: DataPaths.itemSimilarities10,
-                50: DataPaths.itemSimilarities50, 100: DataPaths.itemSimilarities100}[amount]
+        file = DataPaths.itemSimilarities + str(amount) + ".pickle"
 
         with open(file, "ab") as outfile:
             pickle.dump(simDict, outfile, pickle.HIGHEST_PROTOCOL)
@@ -341,8 +357,7 @@ class DataProvider():
         Function stores dict of user purchases to .pickle file
         '''
 
-        file = {1: DataPaths.usersPurchases1, 10: DataPaths.usersPurchases10,
-                50: DataPaths.usersPurchases50, 100: DataPaths.usersPurchases100}[amount]
+        file = DataPaths.usersPurchases + str(amount) + ".pickle"
 
         with open(file, "ab") as outfile:
             pickle.dump(usersPurchases, outfile, pickle.HIGHEST_PROTOCOL)

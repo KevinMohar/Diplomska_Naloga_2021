@@ -27,16 +27,10 @@ class DataPaths():
     usersPickle = "Data/users.pickle"
 
     # item similarites for each item
-    itemSimilarities1 = "Data/itemSimilarities1.pickle"
-    itemSimilarities10 = "Data/itemSimilarities10.pickle"
-    itemSimilarities50 = "Data/itemSimilarities50.pickle"
-    itemSimilarities100 = "Data/itemSimilarities100.pickle"
+    itemSimilarities = "Data/itemSimilarities"
 
     # user purchases for each item
-    usersPurchases1 = "Data/usersPurchases1.pickle"
-    usersPurchases10 = "Data/usersPurchases10.pickle"
-    usersPurchases50 = "Data/usersPurchases50.pickle"
-    usersPurchases100 = "Data/usersPurchases100.pickle"
+    usersPurchases = "Data/usersPurchases"
 
 
 class UserFiles():
