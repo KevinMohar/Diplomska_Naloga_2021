@@ -2,7 +2,7 @@ import heapq
 import itertools
 import operator
 from DataProvider import DataProvider
-from ApplicationConstants import Logging
+from ApplicationConstants import ApplicationConstants, Logging
 import threading
 
 
@@ -126,20 +126,17 @@ def split_dict_equally(input_dict, chunks=2):
     return return_list
 
 
-dp = DataProvider(clearCache=True)
-
+SAMPLE_SIZES = ApplicationConstants.SAMPLE_SIZES
+USERS_PRODUCTS_STORE_SIZES = ApplicationConstants.USERS_PRODUCTS_STORE_SIZES
+ITEM_SIMILARITY_STORE_SIZES = ApplicationConstants.ITEM_SIMILARITY_STORE_SIZES
 NUM_OF_THREADS = 64
 MIN_SIMILARITY_TRESHOLD = 0
 
+dp = DataProvider(clearCache=True, sampleSize=SAMPLE_SIZES[0])
+
 productSim = dp.getSimilaritiesFromPickle()
-itemSimilarites1 = {}
-itemSimilarites10 = {}
-itemSimilarites50 = {}
-itemSimilarites100 = {}
-userItemPurchases1 = {}
-userItemPurchases10 = {}
-userItemPurchases50 = {}
-userItemPurchases100 = {}
+itemSimilarites = {}
+userItemPurchases = {}
 
 #############################################################################################
 # calculate users most frequent purchases for content based
@@ -148,19 +145,12 @@ for user_id in dp.users:
     # get number of users product purchases
     userOrderdProducts = dp.getUserOrderedProducts(user_id)
 
-    top1Products = heapq.nlargest(
-        1, userOrderdProducts, key=userOrderdProducts.get)
-    top10Products = heapq.nlargest(
-        10, userOrderdProducts, key=userOrderdProducts.get)
-    top50Products = heapq.nlargest(
-        50, userOrderdProducts, key=userOrderdProducts.get)
-    top100Products = heapq.nlargest(
-        100, userOrderdProducts, key=userOrderdProducts.get)
+    for N in USERS_PRODUCTS_STORE_SIZES:
+        topNProducts = heapq.nlargest(
+            N, userOrderdProducts, key=userOrderdProducts.get)
+        userItemPurchases[user_id] = topNProducts
+        dp.storeUserPurchasesToPickle(userItemPurchases, N)
 
-    userItemPurchases1[user_id] = top1Products
-    userItemPurchases10[user_id] = top10Products
-    userItemPurchases50[user_id] = top50Products
-    userItemPurchases100[user_id] = top10Products
 
 #############################################################################################
 # calculate similarities for item based
@@ -195,22 +185,9 @@ for product in dp.products:
     sortedDict = dict(sorted(sim.items(),
                              key=operator.itemgetter(1), reverse=True))
 
-    itemSimilarites1[product] = list(sortedDict)[:1]
-    itemSimilarites10[product] = list(sortedDict)[:10]
-    itemSimilarites50[product] = list(sortedDict)[:50]
-    itemSimilarites100[product] = list(sortedDict)[:100]
-
-#############################################################################################
-# store data
-#############################################################################################
-dp.storeItemSimilaritiesToPickle(itemSimilarites1, 1)
-dp.storeItemSimilaritiesToPickle(itemSimilarites10, 10)
-dp.storeItemSimilaritiesToPickle(itemSimilarites50, 50)
-dp.storeItemSimilaritiesToPickle(itemSimilarites100, 100)
-dp.storeUserPurchasesToPickle(userItemPurchases1, 1)
-dp.storeUserPurchasesToPickle(userItemPurchases10, 10)
-dp.storeUserPurchasesToPickle(userItemPurchases50, 50)
-dp.storeUserPurchasesToPickle(userItemPurchases100, 100)
+    for N in ITEM_SIMILARITY_STORE_SIZES:
+        itemSimilarites[product] = list(sortedDict)[:N]
+        dp.storeItemSimilaritiesToPickle(itemSimilarites, N)
 
 
 print(Logging.INFO + "DONE preprocesing data!!!")

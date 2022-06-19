@@ -1,5 +1,5 @@
 import csv
-from ApplicationConstants import DataPaths, Logging
+from ApplicationConstants import ApplicationConstants, DataPaths, Logging
 
 
 def writeOrdersToCSV(csvStringArray, sampleSize):
@@ -12,7 +12,7 @@ def writeOrdersToCSV(csvStringArray, sampleSize):
         writer.writerows(csvStringArray)
 
 
-SAMPLE_SIZES = [1000, 5000, 10000, 15000]
+SAMPLE_SIZES = ApplicationConstants.SAMPLE_SIZES
 lastPassed = False
 csv_file_string_array = []
 
@@ -22,9 +22,9 @@ with open(DataPaths.ordersCSV, "r", encoding='UTF-8') as csvfile:
     reader = csv.reader(csvfile)
     csv_file_string_array.append(next(reader))
     for row in reader:
-
         csv_file_string_array.append(row)
 
+        # stop if all sample sizes have been created
         if lastPassed:
             break
 
@@ -32,7 +32,6 @@ with open(DataPaths.ordersCSV, "r", encoding='UTF-8') as csvfile:
             listIndex = SAMPLE_SIZES.index(len(csv_file_string_array)-1)
             writeOrdersToCSV(csv_file_string_array, SAMPLE_SIZES[listIndex])
 
-            # stop if all sample sizes have been created
             if listIndex == len(SAMPLE_SIZES)-1:
                 lastPassed = True
         except:

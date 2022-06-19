@@ -38,7 +38,7 @@ class DataProvider():
             t3 = threading.Thread(target=self.__getProducts)
             self.threads.append(t3)
 
-            t4 = threading.Thread(target=self.__getOrders)
+            t4 = threading.Thread(target=self.__getOrders, args=(sampleSize,))
             self.threads.append(t4)
 
             for thread in self.threads:
@@ -122,11 +122,14 @@ class DataProvider():
                     product_id, product, aisle, department)
         print(Logging.INFO + "Finished parsing products")
 
-    def __getOrders(self):
+    def __getOrders(self, sampleSize):
         '''
         Function reads orders from .csv file and stores them in dictionary in apropriate data model
         '''
-        with open(DataPaths.ordersCSV, "r", encoding='UTF-8') as csvfile:
+        files = {1000: DataPaths.ordersCSV_filtered1k, 5000: DataPaths.ordersCSV_filtered5k,
+                 10000: DataPaths.ordersCSV_filtered10k, 15000: DataPaths.ordersCSV_filtered15k}
+
+        with open(files[sampleSize], "r", encoding='UTF-8') as csvfile:
             reader = csv.reader(csvfile)
             next(reader)  # skip header
             for row in reader:

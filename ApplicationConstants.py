@@ -56,3 +56,17 @@ class Logging():
     INFO = "[SYSTEM_INFO]: "
     WARNING = "[SYSTEM_WARNING]: "
     ERROR = "[SYSTEM_ERROR]: "
+
+
+class ApplicationConstants():
+    '''
+        Class for storing application constants
+    '''
+    # numer of orders in db
+    SAMPLE_SIZES = [1000, 5000, 10000, 15000]
+
+    # number of users most purchased products stored for each user
+    USERS_PRODUCTS_STORE_SIZES = [1, 10, 50, 100]
+
+    # number of stored items most similar to each item
+    ITEM_SIMILARITY_STORE_SIZES = [1, 10, 50, 100]
