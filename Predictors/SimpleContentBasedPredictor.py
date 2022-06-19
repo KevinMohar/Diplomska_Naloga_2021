@@ -5,8 +5,7 @@ import heapq
 
 class SimpleContentBasedPredictor(Predictor):
     '''
-    Class SimpleContextBasedPredictor represents a method that checks users past purchases and returns N
-    most popular products 
+    Class SimpleContextBasedPredictor checks users past purchases and returns N most popular products 
     '''
 
     isOptimized = False
@@ -22,23 +21,25 @@ class SimpleContentBasedPredictor(Predictor):
         Function returns N most popular products not in users current basket purchased by given user in the past
         '''
         result = {}
+        userOrderdProducts = None
 
         if self.isOptimized:
-            # read most purchased product from db
-            # dp.getUserItemPurchases(storeItemSize)
-            pass
+            # read users item purchases from db
+            userOrderdProducts = self.dp.getUserItemPurchases(self.storeItemSize)[
+                user_id]
         else:
             # calculate users most purchased products
             userOrderdProducts = self.dp.getUserOrderedProducts(user_id)
 
-            for item_id in basket:
-                userOrderdProducts.pop(item_id, None)
+        # remove products already in the basket
+        [userOrderdProducts.pop(item_id, None) for item_id in basket]
 
-            topNProducts = heapq.nlargest(
-                N, userOrderdProducts, key=userOrderdProducts.get)
+        # select users N most purchased products
+        topNProducts = topNProducts = heapq.nlargest(
+            N, userOrderdProducts, key=userOrderdProducts.get)
 
-            for prod in topNProducts:
-                result[prod] = self.dp.products[prod]
+        for prod in topNProducts:
+            result[prod] = self.dp.products[prod]
 
         return result
 

@@ -73,8 +73,9 @@ class Order():
     order_hour_of_day: int
     days_since_prior_order: int
     product_list: list
+    csv_string: str
 
-    def __init__(self, id: int, user_id: int, eval_set: str, order_number: int, order_dow: int, order_hour_of_day: int, days_since_prior_order: int):
+    def __init__(self, id: int, user_id: int, eval_set: str, order_number: int, order_dow: int, order_hour_of_day: int, days_since_prior_order: int, csv_string: str = None):
         self.id = id
         self.user_id = user_id
         self.eval_set = eval_set
@@ -83,6 +84,7 @@ class Order():
         self.order_hour_of_day = order_hour_of_day
         self.days_since_prior_order = days_since_prior_order
         self.product_list = []
+        self.csv_string = csv_string
 
     def __repr__(self):
         return f"Order {self.id}: num of products - {len(self.product_list)}\n"

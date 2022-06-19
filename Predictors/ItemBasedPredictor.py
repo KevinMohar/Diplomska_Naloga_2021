@@ -28,6 +28,8 @@ class ItemBasedPredictor(Predictor):
         Function returns list of N recommended products not in users current basket using item-item CF
         '''
 
+        recommendedProducts = {}
+
         if self.isOptimized:
             # read from db
             # dp.getProductSim(storeItemSize)
@@ -35,35 +37,6 @@ class ItemBasedPredictor(Predictor):
         else:
             # calculate similarities for products in basket
             pass
-
-        if self.productSimilarities == None or len(self.productSimilarities.keys()) == 0:
-            return recommendedProducts
-
-        # order by similartiy (contains only product pairs with similarity grater than 0)
-        sortedDict = dict(sorted(self.productSimilarities.items(),
-                          key=operator.itemgetter(1), reverse=True))
-
-        recommendedProducts = {}
-
-        # select "numOfProducts" most similar products to the ones in the basket
-        for key in sortedDict:
-            prod1 = key[0]
-            prod2 = key[1]
-
-            if prod1 in basket and prod2 not in basket:
-                recommendedProducts[prod2] = self.dp.products[prod2]
-            elif prod2 in basket and prod1 not in basket:
-                recommendedProducts[prod1] = self.dp.products[prod1]
-
-            if len(recommendedProducts) >= numOfProducts:
-                break
-
-        # if less than "numOfProducts" of products with similarities grater than 0 were found fill the empty spots with randomly
-        #   selected products from list of prodcts that are not in basket
-        while len(recommendedProducts) < numOfProducts:
-            prod_id, prod = random.choice(list(self.dp.products.items()))
-            if prod_id not in recommendedProducts:
-                recommendedProducts.update({prod_id: prod})
 
         return recommendedProducts
 
