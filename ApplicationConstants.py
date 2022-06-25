@@ -8,10 +8,6 @@ class DataPaths():
     departmentsCSV = "Data/departments.csv"
     productsCSV = "Data/products.csv"
     ordersCSV = "Data/orders.csv"
-    ordersCSV_filtered1k = "Data/orders_filtered1k.csv"
-    ordersCSV_filtered5k = "Data/orders_filtered5k.csv"
-    ordersCSV_filtered10k = "Data/orders_filtered10k.csv"
-    ordersCSV_filtered15k = "Data/orders_filtered15k.csv"
 
     sampleSubmissionCSV = "Data/sample_submission.csv"
     orderProductsPriorCSV = "Data/order_products__prior.csv"

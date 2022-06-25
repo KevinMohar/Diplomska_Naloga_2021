@@ -1,11 +1,15 @@
+from datetime import datetime
 import glob
 import heapq
 import itertools
 import operator
 import os
+import time
 from DataProvider import DataProvider
 from ApplicationConstants import ApplicationConstants, DataPaths, Logging
 import threading
+
+from Telematry import Telematry
 
 
 def CalcSimWithYoulsQ(prod1, prod2):
@@ -90,12 +94,13 @@ def getNumOfPurchases(prod1: int, prod2: int):
     return (countBoth, countNone, countFirst, countSecond)
 
 
-def PreProcessItemBasedData(products):
+def PreProcessItemBasedData(products, productsFromOrders):
     for prod1 in products:
-        for prod2 in dp.products:
+        for prod2 in productsFromOrders:
             if prod1 != prod2:
                 sim = 0
 
+                # check if similarity was already calcualted for this product pair
                 if (prod1, prod2) in productSimilarities:
                     sim = productSimilarities[(prod1, prod2)]
                     if (prod2, prod1) not in productSimilarities:
@@ -105,6 +110,7 @@ def PreProcessItemBasedData(products):
                     if (prod1, prod2) not in productSimilarities:
                         productSimilarities[(prod1, prod2)] = sim
                 else:
+                    # similarity not calculated --> calculate it
                     sim = CalcSimWithYoulsQ(prod1, prod2)
                     productSimilarities[(prod1, prod2)] = sim
                     productSimilarities[(prod2, prod1)] = sim
@@ -143,16 +149,19 @@ NUM_OF_THREADS = 64
 MIN_SIMILARITY_TRESHOLD = 0
 
 dp = DataProvider(clearCache=False, sampleSize=SAMPLE_SIZE)
-
-productSim = dp.getSimilaritiesFromPickle()
+tel = Telematry()
+tel.DB_records = SAMPLE_SIZE
 itemSimilarites = {}
 
-
+# delete pickle files
 CleanDBcache()
 
 #############################################################################################
 # calculate users most frequent purchases for content based
 #############################################################################################
+print(Logging.INFO + "Started content based data preprocessing...")
+tel.dataPrep_content_startTime = time.time()
+
 for N in USERS_PRODUCTS_STORE_SIZES:
     userItemPurchases = {}
 
@@ -165,10 +174,14 @@ for N in USERS_PRODUCTS_STORE_SIZES:
 
     dp.storeUserPurchasesToPickle(userItemPurchases, N)
 
+tel.dataPrep_content_endTime = time.time()
+print(Logging.INFO + "Content based data preprocessing completed!")
 
 #############################################################################################
 # calculate similarities for item based
 #############################################################################################
+print(Logging.INFO + "Starting item based data preprocesing...")
+tel.dataPrep_itemB_startTime = time.time()
 bothProductPurchases = {}
 noneProductPurchases = {}
 oneProductPurchases = {}
@@ -178,30 +191,41 @@ prepData = split_dict_equally(dp.products, NUM_OF_THREADS)
 threads = []
 global_lock = threading.Lock()
 
+# prepare products from orders
+productsFromOrders = {}
+for order_id in dp.orders:
+    for prod in dp.orders[order_id].product_list:
+        if prod.id not in productsFromOrders:
+            productsFromOrders[prod.id] = prod
+
+# calculate similarities between all items
 for dataset in prepData:
     thread = threading.Thread(
-        target=PreProcessItemBasedData, args=(dataset,))
+        target=PreProcessItemBasedData, args=(dataset, productsFromOrders,))
     threads.append(thread)
 
-print(Logging.INFO + "Starting preprocesing...")
 [thread.start() for thread in threads]
 [thread.join() for thread in threads]
 
 
-# calculate similarities
-for N in ITEM_SIMILARITY_STORE_SIZES:
-    for product in dp.products:
-        sim = {}
+# store N similar products for each item
+for product in dp.products:
+    sim = {}
 
-        for k1, k2 in productSim:
-            if k1 == product:
-                sim[k2] = productSim[(k1, k2)]
+    for k1, k2 in productSimilarities:
+        if k1 == product:
+            if (k1, k2) in productSimilarities:
+                sim[k2] = productSimilarities[(k1, k2)]
+            else:
+                sim[k2] = 0
 
-        sortedDict = dict(sorted(sim.items(),
-                                 key=operator.itemgetter(1), reverse=True))
+    sortedDict = dict(sorted(sim.items(),
+                             key=operator.itemgetter(1), reverse=True))
 
+    for N in ITEM_SIMILARITY_STORE_SIZES:
         itemSimilarites[product] = list(sortedDict)[:N]
-    dp.storeItemSimilaritiesToPickle(itemSimilarites, N)
+        dp.storeItemSimilaritiesToPickle(itemSimilarites, N)
 
-
-print(Logging.INFO + "DONE preprocesing data!!!")
+tel.dataPrep_itemB_endTime = time.time()
+print(Logging.INFO + "Item based data preprocesing completed!")
+tel.PrintDataPrepJobStats()
