@@ -22,21 +22,28 @@ class SimpleContentBasedPredictor(Predictor):
         '''
         result = {}
         userOrderdProducts = None
+        topNProducts = None
 
         if self.isOptimized:
             # read users item purchases from db
             userOrderdProducts = self.dp.getUserItemPurchases(self.storeItemSize)[
                 user_id]
+
+            if len(userOrderdProducts) >= N:
+                topNProducts = userOrderdProducts[0:N]
+            else:
+                topNProducts = userOrderdProducts
+
         else:
             # calculate users most purchased products
             userOrderdProducts = self.dp.getUserOrderedProducts(user_id)
 
-        # remove products already in the basket
-        [userOrderdProducts.pop(item_id, None) for item_id in basket]
+            # remove products already in the basket
+            [userOrderdProducts.pop(item_id, None) for item_id in basket]
 
-        # select users N most purchased products
-        topNProducts = topNProducts = heapq.nlargest(
-            N, userOrderdProducts, key=userOrderdProducts.get)
+            # select users N most purchased products
+            topNProducts = topNProducts = heapq.nlargest(
+                N, userOrderdProducts, key=userOrderdProducts.get)
 
         for prod in topNProducts:
             result[prod] = self.dp.products[prod]

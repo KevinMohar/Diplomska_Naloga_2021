@@ -1,5 +1,5 @@
 from datetime import datetime
-from time import time
+from sqlite3 import time
 
 
 class Telematry:
@@ -17,7 +17,23 @@ class Telematry:
     dataPrep_total_time: any
     dataFiltr_total_time: any
 
+    itemBased_startTime: any
+    itemBased_endTime: any
+    itemBased_totalTime: any
+    itemBased_RequestedProducts: int
+    itemBased_RecommendedProducts: int
+    itemBased_MissPercentage: float
+
+    contentBased_startTime: any
+    contentBased_endTime: any
+    contentBased_totalTime: any
+    contentBased_RequestedProducts: int
+    contentBased_RecommendedProducts: int
+    contentBased_MissPercentage: float
+
     DB_records: int
+    PerItemStoreSize: int
+    PerUserStoreSize: int
     NumOfHypens = 100
 
     def PrintDataPrepJobStats(self):
@@ -50,3 +66,17 @@ class Telematry:
               self.dataFiltr_total_time)
         print("#" + ("-" * self.NumOfHypens) + "#")
         print()
+
+    def StartItemBased(self):
+        self.itemBased_startTime = time.time()
+
+    def StartContentBased(self):
+        self.contentBased_startTime = time.time()
+
+    def EndItemBased(self):
+        self.itemBased_endTime = time.time()
+        self.itemBased_totalTime = self.itemBased_endTime - self.itemBased_startTime
+
+    def EndContentBased(self):
+        self.contentBased_endTime = time.time()
+        self.contentBased_totalTime = self.contentBased_endTime - self.contentBased_startTime

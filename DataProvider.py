@@ -35,7 +35,8 @@ class DataProvider():
             t2 = threading.Thread(target=self.__getDepartments)
             self.threads.append(t2)
 
-            t3 = threading.Thread(target=self.__getProducts)
+            t3 = threading.Thread(
+                target=self.__getProducts, args=(sampleSize,))
             self.threads.append(t3)
 
             t4 = threading.Thread(target=self.__getOrders, args=(sampleSize,))
@@ -107,12 +108,17 @@ class DataProvider():
                     department_id, department)
         print(Logging.INFO + "Finished parsing departments!")
 
-    def __getProducts(self):
+    def __getProducts(self, sampleSize):
         '''
         Function reads products from .csv file and stores them in dictionary in apropriate data model
         '''
         print(Logging.INFO + "Parsing products...")
-        with open(DataPaths.productsCSV, "r", encoding='UTF-8') as csvfile:
+
+        filename = DataPaths.productsCSV.split(".")
+        fullFilename = filename[0] + "_filtered_" + \
+            str(sampleSize) + "." + filename[1]
+
+        with open(fullFilename, "r", encoding='UTF-8') as csvfile:
             reader = csv.reader(csvfile)
             next(reader)  # skip header
             for row in reader:
@@ -128,12 +134,13 @@ class DataProvider():
         '''
         Function reads orders from .csv file and stores them in dictionary in apropriate data model
         '''
-        files = {1000: DataPaths.ordersCSV_filtered1k, 5000: DataPaths.ordersCSV_filtered5k,
-                 10000: DataPaths.ordersCSV_filtered10k, 15000: DataPaths.ordersCSV_filtered15k}
+        filename = DataPaths.ordersCSV.split(".")
+        fullFilename = filename[0] + "_filtered_" + \
+            str(sampleSize) + "." + filename[1]
 
         print(Logging.INFO + "Parsing orders...")
 
-        with open(files[sampleSize], "r", encoding='UTF-8') as csvfile:
+        with open(fullFilename, "r", encoding='UTF-8') as csvfile:
             reader = csv.reader(csvfile)
             next(reader)  # skip header
             for row in reader:
@@ -170,20 +177,20 @@ class DataProvider():
                         self.usersProducts[self.orders[order_id].user_id] = [
                             product.id]
 
-        with open(DataPaths.orderProductsPriorCSV, "r", encoding='UTF-8') as csvfile:
-            reader = csv.reader(csvfile)
-            next(reader)  # skip header
-            for row in reader:
-                order_id = int(row[0])
-                product = self.__findProduct(int(row[1]))
-                if product and order_id in self.orders:
-                    self.orders[order_id].addProduct(product)
-                    if(self.orders[order_id].user_id in self.usersProducts):
-                        self.usersProducts[self.orders[order_id].user_id].append(
-                            product.id)
-                    else:
-                        self.usersProducts[self.orders[order_id].user_id] = [
-                            product.id]
+        # with open(DataPaths.orderProductsPriorCSV, "r", encoding='UTF-8') as csvfile:
+        #     reader = csv.reader(csvfile)
+        #     next(reader)  # skip header
+        #     for row in reader:
+        #         order_id = int(row[0])
+        #         product = self.__findProduct(int(row[1]))
+        #         if product and order_id in self.orders:
+        #             self.orders[order_id].addProduct(product)
+        #             if(self.orders[order_id].user_id in self.usersProducts):
+        #                 self.usersProducts[self.orders[order_id].user_id].append(
+        #                     product.id)
+        #             else:
+        #                 self.usersProducts[self.orders[order_id].user_id] = [
+        #                     product.id]
 
         print(Logging.INFO + "Finished parsing orders!")
 
@@ -361,3 +368,12 @@ class DataProvider():
 
         with open(file, "ab") as outfile:
             pickle.dump(usersPurchases, outfile, pickle.HIGHEST_PROTOCOL)
+
+    def getUserItemPurchases(storeItemSize):
+        filename = DataPaths.usersPurchases + str(storeItemSize) + ".piclke"
+        data = None
+
+        with open(filename, "rb") as reader:
+            data = pickle.load(reader)
+
+        return data
