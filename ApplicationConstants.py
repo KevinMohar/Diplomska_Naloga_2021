@@ -7,6 +7,7 @@ class DataPaths():
     aislesCSV = "Data/aisles.csv"
     departmentsCSV = "Data/departments.csv"
     productsCSV = "Data/products.csv"
+    productsForOrdersCSV = "Data/products_for_orders.csv"
     ordersCSV = "Data/orders.csv"
 
     sampleSubmissionCSV = "Data/sample_submission.csv"
@@ -17,6 +18,7 @@ class DataPaths():
     aislesPickle = "Data/aisles.pickle"
     departmentsPickle = "Data/departments.pickle"
     productsPickle = "Data/products.pickle"
+    productsForOrdersPickle = "Data/productsForOrders.pickle"
     ordersPickle = "Data/orders.pickle"
     similaritiesPicke = "Data/similarityBetweenProducts.pickle"
     usersProductsPicke = "Data/usersProducts.pickle"

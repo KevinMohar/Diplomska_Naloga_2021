@@ -103,11 +103,9 @@ with open(DataPaths.productsCSV, "r", encoding='UTF-8') as csvfile:
 for x in range(len(SAMPLE_SIZES)):
     # save only products for orders
     if x == len(SAMPLE_SIZES)-1:
-        filenameArr = DataPaths.productsCSV.split(".")
-        filename = filenameArr[0] + "_for_orders." + filenameArr[1]
         data = random.sample(csv_file_string_array, SAMPLE_SIZES[x])
         data.insert(0, csv_file_header)
-        writeDataToCSV(filename, data)
+        writeDataToCSV(DataPaths.productsForOrdersCSV, data)
 
     # fill missing products if not enough products were found
     if len(productIds) < SAMPLE_SIZES[x]:

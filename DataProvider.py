@@ -11,6 +11,7 @@ class DataProvider():
     aisles = {}
     departments = {}
     products = {}
+    productsForOrders = {}
     orders = {}
     users = []
     __emptyOrders = {}
@@ -29,18 +30,18 @@ class DataProvider():
 
             print(Logging.INFO + "Started data parsing (to parse: aisles, departments, products, orders, ordered products)...")
 
-            t1 = threading.Thread(target=self.__getAisles)
-            self.threads.append(t1)
+            self.threads.append(threading.Thread(target=self.__getAisles))
 
-            t2 = threading.Thread(target=self.__getDepartments)
-            self.threads.append(t2)
+            self.threads.append(threading.Thread(target=self.__getDepartments))
 
-            t3 = threading.Thread(
-                target=self.__getProducts, args=(sampleSize,))
-            self.threads.append(t3)
+            self.threads.append(threading.Thread(
+                target=self.__getProducts, args=(sampleSize, False)))
 
-            t4 = threading.Thread(target=self.__getOrders, args=(sampleSize,))
-            self.threads.append(t4)
+            self.threads.append(threading.Thread(
+                target=self.__getProducts, args=(sampleSize, True)))
+
+            self.threads.append(threading.Thread(
+                target=self.__getOrders, args=(sampleSize,)))
 
             for thread in self.threads:
                 thread.start()
@@ -68,12 +69,15 @@ class DataProvider():
             self.__storeDataToPickle(
                 list(self.products.values()), DataPaths.productsPickle)  # products
             self.__storeDataToPickle(
+                list(self.products.values()), DataPaths.productsForOrdersCSV)  # products for orders
+            self.__storeDataToPickle(
                 self.usersProducts, DataPaths.usersProductsPicke)  # users products
 
         else:
             self.__getAislesFromPickle()
             self.__getDepartmentsFromPickle()
             self.__getProductsFromPickle()
+            self.__getProductsFromPickle(True)
             self.__getOrdersFromPickle()
             self.__getUsersProductsFromPickle()
             self.__getUsersFromPickle()
@@ -108,15 +112,20 @@ class DataProvider():
                     department_id, department)
         print(Logging.INFO + "Finished parsing departments!")
 
-    def __getProducts(self, sampleSize):
+    def __getProducts(self, sampleSize, forOrders=False):
         '''
         Function reads products from .csv file and stores them in dictionary in apropriate data model
         '''
-        print(Logging.INFO + "Parsing products...")
 
-        filename = DataPaths.productsCSV.split(".")
-        fullFilename = filename[0] + "_filtered_" + \
-            str(sampleSize) + "." + filename[1]
+        fullFilename = ""
+        if forOrders:
+            print(Logging.INFO + "Parsing products for orders...")
+            fullFilename = DataPaths.productsForOrdersCSV
+        else:
+            print(Logging.INFO + "Parsing products...")
+            filename = DataPaths.productsCSV.split(".")
+            fullFilename = filename[0] + "_filtered_" + \
+                str(sampleSize) + "." + filename[1]
 
         with open(fullFilename, "r", encoding='UTF-8') as csvfile:
             reader = csv.reader(csvfile)
@@ -126,8 +135,14 @@ class DataProvider():
                 product = str(row[1])
                 aisle = self.__findAisle(int(row[2]))
                 department = self.__findDepartment(int(row[3]))
-                self.products[product_id] = Product(
-                    product_id, product, aisle, department)
+
+                if forOrders:
+                    self.productsForOrders[product_id] = Product(
+                        product_id, product, aisle, department)
+                else:
+                    self.products[product_id] = Product(
+                        product_id, product, aisle, department)
+
         print(Logging.INFO + "Finished parsing products!")
 
     def __getOrders(self, sampleSize):
@@ -228,14 +243,23 @@ class DataProvider():
             for obj in data:
                 self.departments[obj.id] = obj
 
-    def __getProductsFromPickle(self):
+    def __getProductsFromPickle(self, forOrders=False):
         '''
         Function reads products from .pickle file and stores them in dictionary in apropriate data model
         '''
-        with open(DataPaths.productsPickle, "rb") as reader:
+        filename = ""
+        if forOrders:
+            filename = DataPaths.productsForOrdersPickle
+        else:
+            filename = DataPaths.productsPickle
+
+        with open(filename, "rb") as reader:
             data = pickle.load(reader)
             for obj in data:
-                self.products[obj.id] = obj
+                if forOrders:
+                    self.productsForOrders[obj.id] = obj
+                else:
+                    self.products[obj.id] = obj
 
     def __getUsersProductsFromPickle(self):
         '''
@@ -262,7 +286,7 @@ class DataProvider():
         '''
         Function retrives a product with matching id from dictionary
         '''
-        return self.products.get(id, None)
+        return self.productsForOrders.get(id, None)
 
     def findProducts(self, ids: list):
         '''
