@@ -19,7 +19,7 @@ class DataProvider():
 
     threads = []
 
-    def __init__(self, clearCache: bool = False, sampleSize: int = None) -> None:
+    def __init__(self, clearCache: bool = False, sampleSizeOrders: int = None, sampleSizeProducts: int = None) -> None:
 
         # delete .pickle files and re-read csv
         if clearCache:
@@ -35,13 +35,13 @@ class DataProvider():
             self.threads.append(threading.Thread(target=self.__getDepartments))
 
             self.threads.append(threading.Thread(
-                target=self.__getProducts, args=(sampleSize, False)))
+                target=self.__getProducts, args=(sampleSizeProducts, False)))
 
             self.threads.append(threading.Thread(
-                target=self.__getProducts, args=(sampleSize, True)))
+                target=self.__getProducts, args=(sampleSizeOrders, True)))
 
             self.threads.append(threading.Thread(
-                target=self.__getOrders, args=(sampleSize,)))
+                target=self.__getOrders, args=(sampleSizeOrders,)))
 
             for thread in self.threads:
                 thread.start()
@@ -69,7 +69,7 @@ class DataProvider():
             self.__storeDataToPickle(
                 list(self.products.values()), DataPaths.productsPickle)  # products
             self.__storeDataToPickle(
-                list(self.products.values()), DataPaths.productsForOrdersCSV)  # products for orders
+                list(self.productsForOrders.values()), DataPaths.productsForOrdersPickle)  # products for orders
             self.__storeDataToPickle(
                 self.usersProducts, DataPaths.usersProductsPicke)  # users products
 
@@ -303,7 +303,7 @@ class DataProvider():
         with open(pickleFilePath, "wb") as outfile:
             pickle.dump(data, outfile, pickle.HIGHEST_PROTOCOL)
 
-    def __deleteAllPickle(self):
+    def __deleteAllPickle(self, deleteSimilarities=False):
         '''
         Function deletes all .pickle files
         '''
@@ -316,7 +316,7 @@ class DataProvider():
             os.remove(DataPaths.productsPickle)
         if os.path.isfile(DataPaths.ordersPickle):
             os.remove(DataPaths.ordersPickle)
-        if os.path.isfile(DataPaths.similaritiesPicke):
+        if os.path.isfile(DataPaths.similaritiesPicke) and deleteSimilarities:
             os.remove(DataPaths.similaritiesPicke)
         if os.path.isfile(DataPaths.usersProductsPicke):
             os.remove(DataPaths.usersProductsPicke)
@@ -393,8 +393,17 @@ class DataProvider():
         with open(file, "ab") as outfile:
             pickle.dump(usersPurchases, outfile, pickle.HIGHEST_PROTOCOL)
 
-    def getUserItemPurchases(storeItemSize):
-        filename = DataPaths.usersPurchases + str(storeItemSize) + ".piclke"
+    def getUserItemPurchases(self, storeItemSize):
+        filename = DataPaths.usersPurchases + str(storeItemSize) + ".pickle"
+        data = None
+
+        with open(filename, "rb") as reader:
+            data = pickle.load(reader)
+
+        return data
+
+    def getItemSimilaritiesPurchases(self, storeItemSize):
+        filename = DataPaths.itemSimilarities + str(storeItemSize) + ".pickle"
         data = None
 
         with open(filename, "rb") as reader:

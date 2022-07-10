@@ -6,6 +6,7 @@ from Predictors.SimpleContentBasedPredictor import SimpleContentBasedPredictor
 from Predictors.ItemBasedPredictor import ItemBasedPredictor
 from Recommender import Recommender
 from DataProvider import DataProvider
+from Telematry import Telematry
 
 
 class UImanager():
@@ -18,14 +19,20 @@ class UImanager():
     products: list
     dp = DataProvider(False)
     isOptimized: bool = False
-    storeItemSize: int = 1
+    userProductStoreSize: int
+    itemSimilarityStoreSize: int
 
-    def __init__(self, isOptimized: bool, storeItemSize: int) -> None:
+    def __init__(self, isOptimized: bool, sampleSizeOrders: int, sampleSizeProducts: int, userProductStoreSize: int, itemSimilarityStoreSize: int) -> None:
         '''
         Constructor reads users id and list of products in current basket from input file
         '''
-        self.files = UserFiles
+        self.dp = DataProvider(
+            clearCache=False, sampleSizeOrders=sampleSizeOrders, sampleSizeProducts=sampleSizeProducts)
+        self.telematry = Telematry()
+        self.telematry.DB_orders = sampleSizeOrders
+        self.telematry.DB_products = sampleSizeProducts
 
+        # get data from basket
         f = open(UserFiles.basketInput)
         data = json.load(f)["order"]
         self.user_id = data["user_id"]
@@ -33,7 +40,8 @@ class UImanager():
         f.close()
 
         self.isOptimized = isOptimized
-        self.storeItemSize = storeItemSize
+        self.itemSimilarityStoreSize = itemSimilarityStoreSize
+        self.userProductStoreSize = userProductStoreSize
 
     def getBasket(self):
         '''
@@ -72,12 +80,13 @@ class UImanager():
         recommendations = {}
 
         SCBpredictor = SimpleContentBasedPredictor(
-            self.dp, self.isOptimized, self.storeItemSize)
+            self.dp, self.isOptimized, self.userProductStoreSize, self.telematry)
         recommender = Recommender(SCBpredictor)
         SCBrecommendations = recommender.recommend(
             self.user_id, self.products, numOfProd)
 
-        IBpredictor = ItemBasedPredictor(self.dp)
+        IBpredictor = ItemBasedPredictor(
+            self.dp, self.isOptimized, self.itemSimilarityStoreSize, self.telematry)
         recommender = Recommender(IBpredictor)
         IBrecommendations = recommender.recommend(
             self.user_id, self.products, numOfProd)

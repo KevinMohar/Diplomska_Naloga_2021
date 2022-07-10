@@ -31,7 +31,8 @@ class Telematry:
     contentBased_RecommendedProducts: int
     contentBased_MissPercentage: float
 
-    DB_records: int
+    DB_orders: int
+    DB_products: int
     PerItemStoreSize: int
     PerUserStoreSize: int
     NumOfHypens = 100
@@ -46,12 +47,13 @@ class Telematry:
 
         print()
         print("#" + ("-" * self.NumOfHypens) + "#")
-        print("# Num of records: %i" % self.DB_records)
-        print("# Content based data prep time: %s s" %
+        print("# Num of orders: %s" % self.DB_orders)
+        print("# Num of products: %s" % self.DB_products)
+        print("# Content based data prep time: %ss" %
               self.dataPrep_content_proccessingTime)
         print("# Item based data prep time:    %ss" %
               self.dataPrep_itemB_proccessingTime)
-        print("# Total data prep time:         %s s" %
+        print("# Total data prep time:         %ss" %
               self.dataPrep_total_time)
         print("#" + ("-" * self.NumOfHypens) + "#")
         print()
@@ -61,7 +63,8 @@ class Telematry:
 
         print()
         print("#" + ("-" * self.NumOfHypens) + "#")
-        print("# Prepared data sample sizes: %s" % self.DB_records)
+        print("# Num of orders: %s" % self.DB_orders)
+        print("# Num of products: %s" % self.DB_products)
         print("# Total data filtration time:         %ss" %
               self.dataFiltr_total_time)
         print("#" + ("-" * self.NumOfHypens) + "#")

@@ -1,5 +1,4 @@
 import csv
-import pickle
 import random
 from sqlite3 import Time
 import time
@@ -32,13 +31,15 @@ def prepareRecords(filename):
                 productIds.append(productID)
 
 
-SAMPLE_SIZES = ApplicationConstants.SAMPLE_SIZES
+SAMPLE_SIZES_ORDERS = ApplicationConstants.SAMPLE_SIZES_ORDERS
+SAMPLE_SIZES_PRODUCTS = ApplicationConstants.SAMPLE_SIZES_PRODUCTS
 tel = Telematry()
 
 print(Logging.INFO + "Started data filtration...")
 
 tel.dataFiltr_startTime = time.time()
-tel.DB_records = SAMPLE_SIZES
+tel.DB_orders = SAMPLE_SIZES_ORDERS
+tel.DB_products = SAMPLE_SIZES_PRODUCTS
 orderIds = []
 lastPassed = False
 
@@ -61,12 +62,13 @@ with open(DataPaths.ordersCSV, "r", encoding='UTF-8') as csvfile:
                 break
 
             try:
-                listIndex = SAMPLE_SIZES.index(len(csv_file_string_array)-1)
+                listIndex = SAMPLE_SIZES_ORDERS.index(
+                    len(csv_file_string_array)-1)
                 writeDataToCSV(DataPaths.ordersCSV,
-                               csv_file_string_array, SAMPLE_SIZES[listIndex])
+                               csv_file_string_array, SAMPLE_SIZES_ORDERS[listIndex])
                 orderIds.append(orders.copy())
 
-                if listIndex == len(SAMPLE_SIZES)-1:
+                if listIndex == len(SAMPLE_SIZES_ORDERS)-1:
                     lastPassed = True
             except:
                 pass
@@ -100,24 +102,24 @@ with open(DataPaths.productsCSV, "r", encoding='UTF-8') as csvfile:
 
 
 # write filtered products to csv
-for x in range(len(SAMPLE_SIZES)):
+for x in range(len(SAMPLE_SIZES_PRODUCTS)):
     # save only products for orders
-    if x == len(SAMPLE_SIZES)-1:
-        data = random.sample(csv_file_string_array, SAMPLE_SIZES[x])
+    if x == len(SAMPLE_SIZES_PRODUCTS)-1:
+        data = random.sample(csv_file_string_array, SAMPLE_SIZES_PRODUCTS[x])
         data.insert(0, csv_file_header)
         writeDataToCSV(DataPaths.productsForOrdersCSV, data)
 
     # fill missing products if not enough products were found
-    if len(productIds) < SAMPLE_SIZES[x]:
-        NumbOfMissingSamples = SAMPLE_SIZES[x] - len(productIds)
+    if len(productIds) < SAMPLE_SIZES_PRODUCTS[x]:
+        NumbOfMissingSamples = SAMPLE_SIZES_PRODUCTS[x] - len(productIds)
         missingSamples = random.sample(
             nonOrderProducts, NumbOfMissingSamples)
         csv_file_string_array.extend(missingSamples)
 
     # save products by sample size
-    data = random.sample(csv_file_string_array, SAMPLE_SIZES[x])
+    data = random.sample(csv_file_string_array, SAMPLE_SIZES_PRODUCTS[x])
     data.insert(0, csv_file_header)
-    writeDataToCSV(DataPaths.productsCSV, data, SAMPLE_SIZES[x])
+    writeDataToCSV(DataPaths.productsCSV, data, SAMPLE_SIZES_PRODUCTS[x])
 
 print(Logging.INFO + "Products prepared.")
 tel.dataFiltr_endTime = time.time()

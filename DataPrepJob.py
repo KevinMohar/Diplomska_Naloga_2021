@@ -3,6 +3,7 @@ import heapq
 import operator
 import os
 import time
+from DataFiltration import SAMPLE_SIZES_PRODUCTS
 from DataProvider import DataProvider
 from ApplicationConstants import ApplicationConstants, DataPaths, Logging
 from DataModels import Similarity
@@ -141,15 +142,18 @@ def CleanDBcache():
         os.remove(filename)
 
 
-SAMPLE_SIZE = ApplicationConstants.SAMPLE_SIZES[0]
+SAMPLE_SIZE_ORDERS = ApplicationConstants.SAMPLE_SIZES_ORDERS[0]
+SAMPLE_SIZES_PRODUCTS = ApplicationConstants.SAMPLE_SIZES_PRODUCTS[0]
 USERS_PRODUCTS_STORE_SIZES = ApplicationConstants.USERS_PRODUCTS_STORE_SIZES
 ITEM_SIMILARITY_STORE_SIZES = ApplicationConstants.ITEM_SIMILARITY_STORE_SIZES
 NUM_OF_THREADS = 64
 MIN_SIMILARITY_TRESHOLD = 0
 
-dp = DataProvider(clearCache=False, sampleSize=SAMPLE_SIZE)
+dp = DataProvider(clearCache=True, sampleSizeOrders=SAMPLE_SIZE_ORDERS,
+                  sampleSizeProducts=SAMPLE_SIZES_PRODUCTS)
 tel = Telematry()
-tel.DB_records = SAMPLE_SIZE
+tel.DB_orders = SAMPLE_SIZE_ORDERS
+tel.DB_products = SAMPLE_SIZES_PRODUCTS
 
 
 # delete pickle files
@@ -199,6 +203,8 @@ for order_id in dp.orders:
         if prod.id not in productsFromOrders:
             productsFromOrders[prod.id] = prod
 
+print(Logging.INFO + "Prepared products for orders.")
+
 # calculate similarities between all items
 for dataset in prepData:
     thread = threading.Thread(
@@ -208,28 +214,25 @@ for dataset in prepData:
 [thread.start() for thread in threads]
 [thread.join() for thread in threads]
 
+print(Logging.INFO + "Calculated similarities between all items")
 
 # store N similar products for each item
-# for product in dp.products:
-#     sim = {}
+for k1, k2 in productSimilarities:
+    if k1 in itemSimilarites:
+        itemSimilarites[k1].append(Similarity(
+            k1, k2, productSimilarities[(k1, k2)]))
+    else:
+        itemSimilarites[k1] = [Similarity(
+            k1, k2, productSimilarities[(k1, k2)])]
 
-#     for k1, k2 in productSimilarities:
-#         if k1 == product:
-#             if (k1, k2) in productSimilarities:
-#                 sim[k2] = productSimilarities[(k1, k2)]
-#             else:
-#                 sim[k2] = 0
+for prod in itemSimilarites:
+    sortedList = sorted(itemSimilarites[prod],
+                        key=lambda x: x.similarity, reverse=True)
+    for N in ITEM_SIMILARITY_STORE_SIZES:
+        dp.storeItemSimilaritiesToPickle({prod: list(sortedList)[:N if N <= len(
+            itemSimilarites[prod]) else len(itemSimilarites[prod])]}, N)
 
-#     sortedDict = dict(sorted(sim.items(),
-#                              key=operator.itemgetter(1), reverse=True))
-
-#     for N in ITEM_SIMILARITY_STORE_SIZES:
-#         itemSimilarites[product] = list(sortedDict)[:N]
-#         dp.storeItemSimilaritiesToPickle(itemSimilarites, N)
-
-for N in ITEM_SIMILARITY_STORE_SIZES:
-    itemSimilarites[product] = list(sortedDict)[:N]
-    dp.storeItemSimilaritiesToPickle(itemSimilarites, N)
+print(Logging.INFO + "Stored N most similar items for each item.")
 
 tel.dataPrep_itemB_endTime = time.time()
 print(Logging.INFO + "Item based data preprocesing completed!")

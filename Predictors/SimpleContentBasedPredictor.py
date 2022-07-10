@@ -1,6 +1,8 @@
-from Predictors.Predictor import Predictor
 from DataProvider import DataProvider
 import heapq
+from Predictors.Predictor import Predictor
+
+from Telematry import Telematry
 
 
 class SimpleContentBasedPredictor(Predictor):
@@ -11,10 +13,11 @@ class SimpleContentBasedPredictor(Predictor):
     isOptimized = False
     storeItemSize: int
 
-    def __init__(self, dp: DataProvider, isOptimized: bool, storeItemSize: int) -> None:
+    def __init__(self, dp: DataProvider, isOptimized: bool, userProductStoreSize: int, telematy: Telematry) -> None:
         self.dp = dp
         self.isOptimized = isOptimized
-        self.storeItemSize = storeItemSize
+        self.storeItemSize = userProductStoreSize
+        self.tel = telematy
 
     def predict(self, N: int, user_id: int, basket: list):
         '''
@@ -24,29 +27,42 @@ class SimpleContentBasedPredictor(Predictor):
         userOrderdProducts = None
         topNProducts = None
 
+        self.tel.StartContentBased()
+        self.tel.contentBased_RequestedProducts = N
+
         if self.isOptimized:
             # read users item purchases from db
-            userOrderdProducts = self.dp.getUserItemPurchases(self.storeItemSize)[
+            userOrderedProducts = self.dp.getUserItemPurchases(self.storeItemSize)[
                 user_id]
 
-            if len(userOrderdProducts) >= N:
-                topNProducts = userOrderdProducts[0:N]
+            # remove products already in the basket
+            cleanList = [
+                item_id for item_id in userOrderedProducts if item_id not in basket]
+
+            if len(cleanList) >= N:
+                topNProducts = cleanList[:N]
+                self.tel.contentBased_RecommendedProducts = N
             else:
-                topNProducts = userOrderdProducts
+                topNProducts = cleanList
+                self.tel.contentBased_RecommendedProducts = len(
+                    cleanList)
 
         else:
             # calculate users most purchased products
             userOrderdProducts = self.dp.getUserOrderedProducts(user_id)
 
             # remove products already in the basket
-            [userOrderdProducts.pop(item_id, None) for item_id in basket]
+            cleanList = [
+                item_id for item_id in userOrderdProducts if item_id not in basket]
 
             # select users N most purchased products
             topNProducts = topNProducts = heapq.nlargest(
-                N, userOrderdProducts, key=userOrderdProducts.get)
+                N, cleanList, key=cleanList.get)
 
         for prod in topNProducts:
-            result[prod] = self.dp.products[prod]
+            result[prod] = self.dp.productsForOrders[prod]
+
+        self.tel.EndContentBased()
 
         return result
 

@@ -18,13 +18,13 @@ class ItemBasedPredictor(Predictor):
     isOptimized = False
     storeItemSize: int
 
-    def __init__(self,  dp: DataProvider, isOptimized: bool, storeItemSize: int, telematy: Telematry) -> None:
+    def __init__(self,  dp: DataProvider, isOptimized: bool, itemSimilarityStoreSize: int, telematy: Telematry) -> None:
         self.dp = dp
         self.bothProductPurchases = {}
         self.noneProductPurchases = {}
         self.oneProductPurchases = {}
         self.isOptimized = isOptimized
-        self.storeItemSize = storeItemSize
+        self.storeItemSize = itemSimilarityStoreSize
         self.tel = telematy
 
     def predict(self, N: int, user_id: int, basket: list):
@@ -37,9 +37,38 @@ class ItemBasedPredictor(Predictor):
         recommendedProducts = {}
 
         if self.isOptimized:
-            # read from db
-            # dp.getProductSim(storeItemSize)
-            self.productSimilarities = self.dp.getSimilaritiesFromPickle()
+            # read prepared similarites for each product
+            self.productSimilarities = self.dp.getItemSimilaritiesPurchases(
+                self.storeItemSize)
+
+            # filter out similarities only for items in basket
+            itemSimilarities = []
+            for item in basket:
+                if item in self.productSimilarities:
+                    for itm in self.productSimilarities[item]:
+                        itemSimilarities.append(itm)
+
+            # order by similarity
+            sortedList = sorted(itemSimilarities,
+                                key=lambda x: x.similarity, reverse=True)
+
+            # remove products that are already in basket or are recommended
+            topNProductSim = []
+            for sim in sortedList:
+                if sim.prod2 not in topNProductSim or sim.prod2 not in basket:
+                    topNProductSim.append(sim)
+
+            # select N products to recommend
+            if len(topNProductSim) >= N:
+                topNProductSim = topNProductSim[:N]
+                self.tel.itemBased_RecommendedProducts = N
+            else:
+                topNProductSim = topNProductSim
+                self.tel.itemBased_RecommendedProducts = len(topNProductSim)
+
+            for sim in topNProductSim:
+                recommendedProducts[sim.prod2] = self.dp.products[sim.prod2]
+
         else:
             # calculate similarities for products in basket
             itemSimilarities = {}
