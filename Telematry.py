@@ -3,38 +3,39 @@ from sqlite3 import time
 
 
 class Telematry:
-    dataPrep_content_startTime: any
-    dataPrep_content_endTime: any
-    dataPrep_content_proccessingTime: any
+    dataPrep_content_startTime: any = None
+    dataPrep_content_endTime: any = None
+    dataPrep_content_proccessingTime: any = None
 
-    dataPrep_itemB_startTime: any
-    dataPrep_itemB_endTime: any
-    dataPrep_itemB_proccessingTime: any
+    dataPrep_itemB_startTime: any = None
+    dataPrep_itemB_endTime: any = None
+    dataPrep_itemB_proccessingTime: any = None
 
-    dataFiltr_startTime: any
-    dataFiltr_endTime: any
+    dataFiltr_startTime: any = None
+    dataFiltr_endTime: any = None
 
-    dataPrep_total_time: any
-    dataFiltr_total_time: any
+    dataPrep_total_time: any = None
+    dataFiltr_total_time: any = None
 
-    itemBased_startTime: any
-    itemBased_endTime: any
-    itemBased_totalTime: any
-    itemBased_RequestedProducts: int
-    itemBased_RecommendedProducts: int
-    itemBased_MissPercentage: float
+    itemBased_startTime: any = None
+    itemBased_endTime: any = None
+    itemBased_totalTime: any = None
+    itemBased_RequestedProducts: int = None
+    itemBased_RecommendedProducts: int = None
+    itemBased_MissPercentage: float = None
 
-    contentBased_startTime: any
-    contentBased_endTime: any
-    contentBased_totalTime: any
-    contentBased_RequestedProducts: int
-    contentBased_RecommendedProducts: int
-    contentBased_MissPercentage: float
+    contentBased_startTime: any = None
+    contentBased_endTime: any = None
+    contentBased_totalTime: any = None
+    contentBased_RequestedProducts: int = None
+    contentBased_RecommendedProducts: int = None
+    contentBased_MissPercentage: float = None
 
-    DB_orders: int
-    DB_products: int
-    PerItemStoreSize: int
-    PerUserStoreSize: int
+    DB_orders: int = None
+    DB_products: int = None
+    PerItemStoreSize: int = None
+    PerUserStoreSize: int = None
+
     NumOfHypens = 100
 
     def PrintDataPrepJobStats(self):
@@ -64,9 +65,53 @@ class Telematry:
         print()
         print("#" + ("-" * self.NumOfHypens) + "#")
         print("# Num of orders: %s" % self.DB_orders)
-        print("# Num of products: %s" % self.DB_products)
-        print("# Total data filtration time:         %ss" %
+        print("# Total data filtration time:         %0.2f" %
               self.dataFiltr_total_time)
+        print("#" + ("-" * self.NumOfHypens) + "#")
+        print()
+
+    def PrintReccomendations(self, products_content, products_item):
+        CB_missPercent = 0
+        IB_missPercent = 0
+
+        if self.contentBased_RecommendedProducts < self.contentBased_RequestedProducts:
+            CB_missPercent = 100 - \
+                ((self.contentBased_RecommendedProducts * 100) /
+                 self.contentBased_RequestedProducts)
+
+        if self.itemBased_RecommendedProducts < self.itemBased_RequestedProducts:
+            IB_missPercent = 100 - \
+                ((self.itemBased_RecommendedProducts * 100) /
+                 self.itemBased_RequestedProducts)
+
+        print()
+        print("#" + ("-" * self.NumOfHypens) + "#")
+
+        print("# Number of orders in DB: {}     Number of products: {}".format(
+            self.DB_orders, self.DB_products))
+        print("# Item similarity store size : {}     User orders store size: {}".format(
+            self.PerItemStoreSize, self.PerUserStoreSize))
+
+        print("#" + ("-" * int(self.NumOfHypens/2)))
+
+        print("# Content based recommendations: ")
+        for product in products_content:
+            print("#   - {}".format(product))
+        print("# CB requested products: {}        CB recommended products: {}".format(
+            self.contentBased_RequestedProducts, self.contentBased_RecommendedProducts))
+        print("# CB miss percentage: {}%        Processing time: {}".format(
+            CB_missPercent, self.contentBased_totalTime))
+
+        print("#" + ("-" * int(self.NumOfHypens/2)))
+
+        print("# Item based recommendations: ")
+        for product in products_item:
+            print("   - {}".format(product))
+        print("# IB requested products: {}        IB recommended products: {}".format(
+            self.itemBased_RequestedProducts, self.itemBased_RecommendedProducts))
+        print("# IB miss percentage: {}%        Processing time: {}".format(
+            IB_missPercent, self.itemBased_totalTime))
+
         print("#" + ("-" * self.NumOfHypens) + "#")
         print()
 

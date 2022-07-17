@@ -22,15 +22,16 @@ class UImanager():
     userProductStoreSize: int
     itemSimilarityStoreSize: int
 
-    def __init__(self, isOptimized: bool, sampleSizeOrders: int, sampleSizeProducts: int, userProductStoreSize: int, itemSimilarityStoreSize: int) -> None:
+    def __init__(self, isOptimized: bool, sampleSizeOrders: int, sampleSizeProducts: int, itemSimilarityStoreSize: int) -> None:
         '''
         Constructor reads users id and list of products in current basket from input file
         '''
         self.dp = DataProvider(
-            clearCache=False, sampleSizeOrders=sampleSizeOrders, sampleSizeProducts=sampleSizeProducts)
+            clearCache=False, sampleSizeOrders=sampleSizeOrders)
         self.telematry = Telematry()
         self.telematry.DB_orders = sampleSizeOrders
         self.telematry.DB_products = sampleSizeProducts
+        self.telematry.PerItemStoreSize = itemSimilarityStoreSize
 
         # get data from basket
         f = open(UserFiles.basketInput)
@@ -41,7 +42,6 @@ class UImanager():
 
         self.isOptimized = isOptimized
         self.itemSimilarityStoreSize = itemSimilarityStoreSize
-        self.userProductStoreSize = userProductStoreSize
 
     def getBasket(self):
         '''
@@ -55,29 +55,43 @@ class UImanager():
         '''
         return self.user_id
 
-    def outputRecommendations(self, products: dict, printToConsole: bool = False):
+    def outputRecommendations(self, products: tuple, printToConsole: bool = False):
         '''
         Function recives a list of recommended products and writes them in the output file.
         '''
         outProducts = []
 
-        for product in products:
-            jsonOut = json.dumps(products[product].reprJSON(), cls=Encoder)
-            if printToConsole:
-                print(jsonOut)
+        products_content = products[0]
+        products_item = products[1]
+
+        products_content_obj = []
+        products_item_obj = []
+
+        for product in products_content:
+            jsonOut = json.dumps(
+                products_content[product].reprJSON(), cls=Encoder)
             outProducts.append(jsonOut)
+            products_content_obj.append(self.dp.products[product])
+
+        for product in products_item:
+            jsonOut = json.dumps(
+                products_item[product].reprJSON(), cls=Encoder)
+            outProducts.append(jsonOut)
+            products_item_obj.append(self.dp.products[product])
 
         with open(UserFiles.recommenderOutput, "w") as outfile:
             outJSON = {}
             outJSON["recommendedProducts"] = json.dumps(outProducts)
             json.dump(outJSON, outfile)
 
+        if printToConsole:
+            self.telematry.PrintReccomendations(
+                products_item=products_item_obj, products_content=products_content_obj)
+
     def recommendProducts(self, numOfProd: int):
         '''
         Function returns a list of 2N recommended products using each method
         '''
-
-        recommendations = {}
 
         SCBpredictor = SimpleContentBasedPredictor(
             self.dp, self.isOptimized, self.userProductStoreSize, self.telematry)
@@ -91,7 +105,4 @@ class UImanager():
         IBrecommendations = recommender.recommend(
             self.user_id, self.products, numOfProd)
 
-        recommendations.update(SCBrecommendations)
-        recommendations.update(IBrecommendations)
-
-        return recommendations
+        return (SCBrecommendations, IBrecommendations)

@@ -54,14 +54,14 @@ class ApplicationConstants():
     '''
         Class for storing application constants
     '''
-    # numer of orders in db
+    # sample sizes for orders
     SAMPLE_SIZES_ORDERS = [1000, 5000, 10000, 15000]
-
-    # number of products in db
-    SAMPLE_SIZES_PRODUCTS = [100, 500, 1000, 1500]
 
     # number of users most purchased products stored for each user
     USERS_PRODUCTS_STORE_SIZES = [1, 10, 50, 100]
 
     # number of stored items most similar to each item
     ITEM_SIMILARITY_STORE_SIZES = [1, 10, 50, 100]
+
+    # sample size to use for preparing orders
+    ORDERS_SAMPLE_SIZE_TO_USE = SAMPLE_SIZES_ORDERS[0]

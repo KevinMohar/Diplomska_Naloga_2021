@@ -1,9 +1,7 @@
 import glob
 import heapq
-import operator
 import os
 import time
-from DataFiltration import SAMPLE_SIZES_PRODUCTS
 from DataProvider import DataProvider
 from ApplicationConstants import ApplicationConstants, DataPaths, Logging
 from DataModels import Similarity
@@ -12,9 +10,9 @@ import threading
 from Telematry import Telematry
 
 
-def CalcSimWithYoulsQ(prod1, prod2):
+def CalcSimWithYoulsQ(prod1, prod2, globalLock):
     purchasedBoth, purchasedNone, purchasedFirst, purchasedSecond = getNumOfPurchases(
-        prod1, prod2)
+        prod1, prod2, globalLock)
 
     similarity = 0
 
@@ -27,13 +25,13 @@ def CalcSimWithYoulsQ(prod1, prod2):
     if b != 0:
         similarity = a/b
 
-    if similarity < 0:
-        similarity = 0
+    if similarity < MIN_SIMILARITY_TRESHOLD:
+        similarity = MIN_SIMILARITY_TRESHOLD
 
     return similarity
 
 
-def getNumOfPurchases(prod1: int, prod2: int):
+def getNumOfPurchases(prod1: int, prod2: int, globalLock):
     '''
     Function accepts 2 products and returns values needed for Youls' Q calculation
     '''
@@ -84,6 +82,11 @@ def getNumOfPurchases(prod1: int, prod2: int):
             if prod1 not in dp.usersProducts[user_id] and prod2 in dp.usersProducts[user_id]:
                 countSecond += 1
 
+        while globalLock.locked():
+            continue
+
+        globalLock.acquire()
+
         bothProductPurchases.update({(prod1, prod2): countBoth})
         bothProductPurchases.update({(prod2, prod1): countBoth})
         noneProductPurchases.update({(prod1, prod2): countNone})
@@ -91,10 +94,13 @@ def getNumOfPurchases(prod1: int, prod2: int):
         oneProductPurchases.update({(prod1, prod2): countFirst})
         oneProductPurchases.update({(prod2, prod1): countSecond})
 
+        globalLock.release()
+
     return (countBoth, countNone, countFirst, countSecond)
 
 
-def PreProcessItemBasedData(products, productsFromOrders):
+def PreProcessItemBasedData(products, productsFromOrders, globalLock):
+
     for prod1 in products:
         for prod2 in productsFromOrders:
             if prod1 != prod2:
@@ -111,13 +117,9 @@ def PreProcessItemBasedData(products, productsFromOrders):
                         productSimilarities[(prod1, prod2)] = sim
                 else:
                     # similarity not calculated --> calculate it
-                    sim = CalcSimWithYoulsQ(prod1, prod2)
+                    sim = CalcSimWithYoulsQ(prod1, prod2, globalLock)
                     productSimilarities[(prod1, prod2)] = sim
                     productSimilarities[(prod2, prod1)] = sim
-
-                if sim > MIN_SIMILARITY_TRESHOLD:
-                    dp.storeSimilaritiesToPickle(
-                        {(prod1, prod2): sim}, global_lock)
 
 
 def split_dict_equally(input_dict, chunks=2):
@@ -142,18 +144,17 @@ def CleanDBcache():
         os.remove(filename)
 
 
-SAMPLE_SIZE_ORDERS = ApplicationConstants.SAMPLE_SIZES_ORDERS[0]
-SAMPLE_SIZES_PRODUCTS = ApplicationConstants.SAMPLE_SIZES_PRODUCTS[0]
+SAMPLE_SIZE_ORDERS = ApplicationConstants.ORDERS_SAMPLE_SIZE_TO_USE
+
 USERS_PRODUCTS_STORE_SIZES = ApplicationConstants.USERS_PRODUCTS_STORE_SIZES
 ITEM_SIMILARITY_STORE_SIZES = ApplicationConstants.ITEM_SIMILARITY_STORE_SIZES
+
 NUM_OF_THREADS = 64
 MIN_SIMILARITY_TRESHOLD = 0
 
-dp = DataProvider(clearCache=True, sampleSizeOrders=SAMPLE_SIZE_ORDERS,
-                  sampleSizeProducts=SAMPLE_SIZES_PRODUCTS)
+dp = DataProvider(clearCache=True, sampleSizeOrders=SAMPLE_SIZE_ORDERS)
 tel = Telematry()
 tel.DB_orders = SAMPLE_SIZE_ORDERS
-tel.DB_products = SAMPLE_SIZES_PRODUCTS
 
 
 # delete pickle files
@@ -169,12 +170,16 @@ for N in USERS_PRODUCTS_STORE_SIZES:
     userItemPurchases = {}
 
     for user_id in dp.users:
+        # get number of users product purchases
         userOrderdProducts = dp.getUserOrderedProducts(
-            user_id)  # get number of users product purchases
+            user_id)
+
+        # select N most purchased products
         topNProductsKeys = heapq.nlargest(
             N, userOrderdProducts, key=userOrderdProducts.get)
         userItemPurchases[user_id] = topNProductsKeys
 
+    # store N most purchased products for users
     dp.storeUserPurchasesToPickle(userItemPurchases, N)
 
 tel.dataPrep_content_endTime = time.time()
@@ -196,23 +201,17 @@ prepData = split_dict_equally(dp.products, NUM_OF_THREADS)
 threads = []
 global_lock = threading.Lock()
 
-# prepare products from orders
-productsFromOrders = {}
-for order_id in dp.orders:
-    for prod in dp.orders[order_id].product_list:
-        if prod.id not in productsFromOrders:
-            productsFromOrders[prod.id] = prod
-
-print(Logging.INFO + "Prepared products for orders.")
-
 # calculate similarities between all items
 for dataset in prepData:
     thread = threading.Thread(
-        target=PreProcessItemBasedData, args=(dataset, productsFromOrders,))
+        target=PreProcessItemBasedData, args=(dataset, dp.products, global_lock))
     threads.append(thread)
 
 [thread.start() for thread in threads]
 [thread.join() for thread in threads]
+
+# store calulted similarities between all items for next time
+dp.storeSimilaritiesToPickle(productSimilarities)
 
 print(Logging.INFO + "Calculated similarities between all items")
 
@@ -227,7 +226,7 @@ for k1, k2 in productSimilarities:
 
 for prod in itemSimilarites:
     sortedList = sorted(itemSimilarites[prod],
-                        key=lambda x: x.similarity, reverse=True)
+                        key=lambda x: x.similarity, reverse=False)
     for N in ITEM_SIMILARITY_STORE_SIZES:
         dp.storeItemSimilaritiesToPickle({prod: list(sortedList)[:N if N <= len(
             itemSimilarites[prod]) else len(itemSimilarites[prod])]}, N)

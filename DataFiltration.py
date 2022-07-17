@@ -1,9 +1,11 @@
 import csv
-import random
+import glob
+import os
 from sqlite3 import Time
 import time
 from ApplicationConstants import ApplicationConstants, DataPaths, Logging
 from Telematry import Telematry
+from DataModels import Order
 
 
 def writeDataToCSV(filename, csvStringArray, sampleSize=None):
@@ -18,7 +20,7 @@ def writeDataToCSV(filename, csvStringArray, sampleSize=None):
         writer.writerows(csvStringArray)
 
 
-def prepareRecords(filename):
+def prepareRecords(filename, sampleSizes):
     with open(filename, "r", encoding='UTF-8') as csvfile:
         reader = csv.reader(csvfile)
         next(reader)  # skip header
@@ -27,21 +29,42 @@ def prepareRecords(filename):
             orderID = int(row[0])
             productID = int(row[1])
 
-            if orderID in orderIds[len(orderIds)-1] and productID not in productIds:
-                productIds.append(productID)
+            # if products get stored to single file
+            # if orderID in orderIds[len(orderIds)-1] and productID not in productIds:
+            #     productIds.append(productID)
+
+            for x in range(len(sampleSizes)):
+                if orderID in orderIds[x]:
+                    productIds[x].append(productID)
 
 
+def ClearCache(clear: bool):
+    if clear:
+        # clear products
+        fe = DataPaths.productsCSV.split(".")
+        files = fe[0] + "_filtered_"
+        for filename in glob.glob(files + "*"):
+            os.remove(filename)
+
+        # clear orders
+        fe = DataPaths.ordersCSV.split(".")
+        files = fe[0] + "_filtered_"
+        for filename in glob.glob(files + "*"):
+            os.remove(filename)
+
+
+#---------------------------------------------------------------------------------------------------------------#
+CLEAR_CACHE = True
 SAMPLE_SIZES_ORDERS = ApplicationConstants.SAMPLE_SIZES_ORDERS
-SAMPLE_SIZES_PRODUCTS = ApplicationConstants.SAMPLE_SIZES_PRODUCTS
-tel = Telematry()
+#---------------------------------------------------------------------------------------------------------------#
 
 print(Logging.INFO + "Started data filtration...")
-
+tel = Telematry()
 tel.dataFiltr_startTime = time.time()
 tel.DB_orders = SAMPLE_SIZES_ORDERS
-tel.DB_products = SAMPLE_SIZES_PRODUCTS
 orderIds = []
 lastPassed = False
+ClearCache(CLEAR_CACHE)
 
 ##############################
 # prepare orders
@@ -77,17 +100,16 @@ print(Logging.INFO + "Orders prepared.")
 ##############################
 # prepare products
 ##############################
-csv_file_string_array = []
+csv_file_string_array = [[] for x in range(len(SAMPLE_SIZES_ORDERS))]
 csv_file_header = ""
 
-productIds = []
-prepareRecords(DataPaths.orderProductsTrainCSV)
+productIds = [[] for x in range(len(SAMPLE_SIZES_ORDERS))]
+prepareRecords(DataPaths.orderProductsTrainCSV, SAMPLE_SIZES_ORDERS)
 # prepareRecords(DataPaths.orderProductsPriorCSV)
 
 print(Logging.INFO + "Prepared ordered products.")
-nonOrderProducts = []
 
-# find products for orders
+# find product csv strings
 with open(DataPaths.productsCSV, "r", encoding='UTF-8') as csvfile:
     reader = csv.reader(csvfile)
     csv_file_header = next(reader)
@@ -95,31 +117,17 @@ with open(DataPaths.productsCSV, "r", encoding='UTF-8') as csvfile:
     for row in reader:
         productID = int(row[0])
 
-        if productID in productIds:
-            csv_file_string_array.append(row)
-        else:
-            nonOrderProducts.append(row)
+        for x in range(len(SAMPLE_SIZES_ORDERS)):
+            if productID in productIds[x]:
+                csv_file_string_array[x].append(row)
 
 
 # write filtered products to csv
-for x in range(len(SAMPLE_SIZES_PRODUCTS)):
-    # save only products for orders
-    if x == len(SAMPLE_SIZES_PRODUCTS)-1:
-        data = random.sample(csv_file_string_array, SAMPLE_SIZES_PRODUCTS[x])
-        data.insert(0, csv_file_header)
-        writeDataToCSV(DataPaths.productsForOrdersCSV, data)
-
-    # fill missing products if not enough products were found
-    if len(productIds) < SAMPLE_SIZES_PRODUCTS[x]:
-        NumbOfMissingSamples = SAMPLE_SIZES_PRODUCTS[x] - len(productIds)
-        missingSamples = random.sample(
-            nonOrderProducts, NumbOfMissingSamples)
-        csv_file_string_array.extend(missingSamples)
-
-    # save products by sample size
-    data = random.sample(csv_file_string_array, SAMPLE_SIZES_PRODUCTS[x])
+for x in range(len(SAMPLE_SIZES_ORDERS)):
+    data = csv_file_string_array[x]
     data.insert(0, csv_file_header)
-    writeDataToCSV(DataPaths.productsCSV, data, SAMPLE_SIZES_PRODUCTS[x])
+    writeDataToCSV(DataPaths.productsCSV, data, SAMPLE_SIZES_ORDERS[x])
+
 
 print(Logging.INFO + "Products prepared.")
 tel.dataFiltr_endTime = time.time()

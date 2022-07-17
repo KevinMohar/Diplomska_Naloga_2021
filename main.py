@@ -17,19 +17,9 @@ ITEM_SIMILARITY_STORE_SIZE = ApplicationConstants.ITEM_SIMILARITY_STORE_SIZES[0]
 # idx: 3 = for each user we store 100 most frequently purchased products
 USERS_PRODUCTS_STORE_SIZE = ApplicationConstants.USERS_PRODUCTS_STORE_SIZES[0]
 
-# idx: 0 = 1k orders in database
-# idx: 1 = 5k orders in database
-# idx: 2 = 10k orders in database
-# idx: 3 = 15k orders in database
-SAMPLE_SIZE_ORDERS = ApplicationConstants.SAMPLE_SIZES_ORDERS[0]
-
-# idx: 0 = 100 products in database
-# idx: 1 = 500 products in database
-# idx: 2 = 1000 products in database
-# idx: 3 = 1500 products in database
-SAMPLE_SIZES_PRODUCTS = ApplicationConstants.SAMPLE_SIZES_PRODUCTS[0]
+SAMPLE_SIZE_ORDERS = ApplicationConstants.ORDERS_SAMPLE_SIZE_TO_USE
 
 uiManager = UImanager(IS_OPTIMIZED_ALGORITHEM,
-                      SAMPLE_SIZE_ORDERS, SAMPLE_SIZES_PRODUCTS, USERS_PRODUCTS_STORE_SIZE, ITEM_SIMILARITY_STORE_SIZE)
+                      USERS_PRODUCTS_STORE_SIZE, ITEM_SIMILARITY_STORE_SIZE)
 recommendations = uiManager.recommendProducts(10)
 uiManager.outputRecommendations(recommendations, printToConsole=True)

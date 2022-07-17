@@ -32,12 +32,12 @@ class SimpleContentBasedPredictor(Predictor):
 
         if self.isOptimized:
             # read users item purchases from db
-            userOrderedProducts = self.dp.getUserItemPurchases(self.storeItemSize)[
-                user_id]
+            userOrderedProducts = self.dp.getUserItemPurchases(
+                self.storeItemSize)
 
             # remove products already in the basket
             cleanList = [
-                item_id for item_id in userOrderedProducts if item_id not in basket]
+                item_id for item_id in userOrderedProducts[user_id] if item_id not in basket]
 
             if len(cleanList) >= N:
                 topNProducts = cleanList[:N]
