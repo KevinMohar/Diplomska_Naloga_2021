@@ -55,7 +55,7 @@ class ItemBasedPredictor(Predictor):
             # remove products that are already in basket or are recommended
             topNProductSim = []
             for sim in sortedList:
-                if sim.prod2 not in topNProductSim or sim.prod2 not in basket:
+                if sim.product2 not in topNProductSim or sim.product2 not in basket:
                     topNProductSim.append(sim)
 
             # select N products to recommend
