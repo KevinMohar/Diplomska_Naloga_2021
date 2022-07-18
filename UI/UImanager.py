@@ -1,7 +1,6 @@
 from ApplicationConstants import UserFiles
 import json
 from JSONEncoder import Encoder
-from Predictors.Predictor import Predictor
 from Predictors.SimpleContentBasedPredictor import SimpleContentBasedPredictor
 from Predictors.ItemBasedPredictor import ItemBasedPredictor
 from Recommender import Recommender
