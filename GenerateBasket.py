@@ -1,17 +1,14 @@
 import random
-from json import json
+import json
 from ApplicationConstants import ApplicationConstants, UserFiles, Logging
 from DataProvider import DataProvider
 
 
-SAMPLE_SIZE_PRODUCTS = ApplicationConstants.SAMPLE_SIZES_PRODUCTS[0]
-SAMPLE_SIZE_ORDERS = ApplicationConstants.SAMPLE_SIZES_ORDERS[0]
-
+SAMPLE_SIZE_ORDERS = ApplicationConstants.ORDERS_SAMPLE_SIZE_TO_USE
 NUM_OF_PRODUCTS_IN_BASKET = 5
 
 
-dp = DataProvider(clearCache=False, sampleSizeOrders=SAMPLE_SIZE_ORDERS,
-                  sampleSizeProducts=SAMPLE_SIZE_PRODUCTS)
+dp = DataProvider(clearCache=False, sampleSizeOrders=SAMPLE_SIZE_ORDERS)
 
 isOk = False
 randProducts = []

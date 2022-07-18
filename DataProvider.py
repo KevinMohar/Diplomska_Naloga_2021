@@ -295,7 +295,7 @@ class DataProvider():
         Function stores dict of similarities to .pickle file
         '''
 
-        with open(DataPaths.similaritiesPicke, "ab") as outfile:
+        with open(DataPaths.similaritiesPicke, "wb") as outfile:
             pickle.dump(simDict, outfile, pickle.HIGHEST_PROTOCOL)
 
     def getSimilaritiesFromPickle(self):
@@ -323,7 +323,7 @@ class DataProvider():
 
         file = DataPaths.itemSimilarities + str(amount) + ".pickle"
 
-        with open(file, "ab") as outfile:
+        with open(file, "wb") as outfile:
             pickle.dump(simDict, outfile, pickle.HIGHEST_PROTOCOL)
 
     def getUserOrderedProducts(self, user_id) -> dict:

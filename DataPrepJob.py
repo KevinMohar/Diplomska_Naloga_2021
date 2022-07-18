@@ -213,7 +213,7 @@ for dataset in prepData:
 [thread.join() for thread in threads]
 
 # store calulted similarities between all items for next time
-if not newSimilarityCalculated:
+if newSimilarityCalculated:
     dp.storeSimilaritiesToPickle(productSimilarities)
 
 print(Logging.INFO + "Calculated similarities between all items")
@@ -227,16 +227,20 @@ for k1, k2 in productSimilarities:
         itemSimilarites[k1] = [Similarity(
             k1, k2, productSimilarities[(k1, k2)])]
 
-for prod in itemSimilarites:
-    sortedList = sorted(itemSimilarites[prod],
-                        key=lambda x: x.similarity, reverse=False)
-    for N in ITEM_SIMILARITY_STORE_SIZES:
+for N in ITEM_SIMILARITY_STORE_SIZES:
+    tmp = {}
+
+    for prod in itemSimilarites:
+        sortedList = sorted(itemSimilarites[prod],
+                            key=lambda x: x.similarity, reverse=False)
         data = []
         if N < len(sortedList):
             data = sortedList[:N]
         else:
             data = sortedList
-        dp.storeItemSimilaritiesToPickle({prod: data}, N)
+
+        tmp[prod] = data
+    dp.storeItemSimilaritiesToPickle(tmp, N)
 
 print(Logging.INFO + "Stored N most similar items for each item.")
 
