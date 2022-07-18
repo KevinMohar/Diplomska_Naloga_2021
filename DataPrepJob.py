@@ -6,8 +6,9 @@ from DataProvider import DataProvider
 from ApplicationConstants import ApplicationConstants, DataPaths, Logging
 from DataModels import Similarity
 import threading
-
 from Telematry import Telematry
+
+newSimilarityCalculated = False
 
 
 def CalcSimWithYoulsQ(prod1, prod2, globalLock):
@@ -120,6 +121,7 @@ def PreProcessItemBasedData(products, productsFromOrders, globalLock):
                     sim = CalcSimWithYoulsQ(prod1, prod2, globalLock)
                     productSimilarities[(prod1, prod2)] = sim
                     productSimilarities[(prod2, prod1)] = sim
+                    newSimilarityCalculated = True
 
 
 def split_dict_equally(input_dict, chunks=2):
@@ -152,7 +154,7 @@ ITEM_SIMILARITY_STORE_SIZES = ApplicationConstants.ITEM_SIMILARITY_STORE_SIZES
 NUM_OF_THREADS = 64
 MIN_SIMILARITY_TRESHOLD = 0
 
-dp = DataProvider(clearCache=True, sampleSizeOrders=SAMPLE_SIZE_ORDERS)
+dp = DataProvider(clearCache=False, sampleSizeOrders=SAMPLE_SIZE_ORDERS)
 tel = Telematry()
 tel.DB_orders = SAMPLE_SIZE_ORDERS
 
@@ -161,7 +163,7 @@ tel.DB_orders = SAMPLE_SIZE_ORDERS
 CleanDBcache()
 
 #############################################################################################
-# calculate users most frequent purchases for content based
+# calculate users most frequent purchases for content based [OK]
 #############################################################################################
 print(Logging.INFO + "Started content based data preprocessing...")
 tel.dataPrep_content_startTime = time.time()
@@ -211,7 +213,8 @@ for dataset in prepData:
 [thread.join() for thread in threads]
 
 # store calulted similarities between all items for next time
-dp.storeSimilaritiesToPickle(productSimilarities)
+if not newSimilarityCalculated:
+    dp.storeSimilaritiesToPickle(productSimilarities)
 
 print(Logging.INFO + "Calculated similarities between all items")
 
@@ -228,8 +231,12 @@ for prod in itemSimilarites:
     sortedList = sorted(itemSimilarites[prod],
                         key=lambda x: x.similarity, reverse=False)
     for N in ITEM_SIMILARITY_STORE_SIZES:
-        dp.storeItemSimilaritiesToPickle({prod: list(sortedList)[:N if N <= len(
-            itemSimilarites[prod]) else len(itemSimilarites[prod])]}, N)
+        data = []
+        if N < len(sortedList):
+            data = sortedList[:N]
+        else:
+            data = sortedList
+        dp.storeItemSimilaritiesToPickle({prod: data}, N)
 
 print(Logging.INFO + "Stored N most similar items for each item.")
 

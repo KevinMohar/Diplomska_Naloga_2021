@@ -16,7 +16,7 @@ class UImanager():
     files: UserFiles
     user_id: int
     products: list
-    dp = DataProvider(False)
+    dp: DataProvider
     isOptimized: bool = False
     userProductStoreSize: int
     itemSimilarityStoreSize: int
@@ -26,7 +26,7 @@ class UImanager():
         Constructor reads users id and list of products in current basket from input file
         '''
         self.dp = DataProvider(
-            clearCache=True, sampleSizeOrders=sampleSizeOrders)
+            clearCache=False, sampleSizeOrders=sampleSizeOrders)
 
         self.telematry = Telematry()
         self.telematry.DB_orders = sampleSizeOrders

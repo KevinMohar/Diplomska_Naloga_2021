@@ -31,7 +31,7 @@ class SimpleContentBasedPredictor(Predictor):
         self.tel.contentBased_RequestedProducts = N
 
         if self.isOptimized:
-            # read users item purchases from db
+            # read users item purchases from db (products are ordered by num of purchases - first is most purchased)
             userOrderedProducts = self.dp.getUserItemPurchases(
                 self.storeItemSize)
 
@@ -56,11 +56,16 @@ class SimpleContentBasedPredictor(Predictor):
                 item_id for item_id in userOrderdProducts if item_id not in basket]
 
             # select users N most purchased products
-            topNProducts = topNProducts = heapq.nlargest(
-                N, cleanList, key=cleanList.get)
+            if len(cleanList) >= N:
+                topNProducts = cleanList[:N]
+                self.tel.contentBased_RecommendedProducts = N
+            else:
+                topNProducts = cleanList
+                self.tel.contentBased_RecommendedProducts = len(
+                    cleanList)
 
         for prod in topNProducts:
-            result[prod] = self.dp.productsForOrders[prod]
+            result[prod] = self.dp.products[prod]
 
         self.tel.EndContentBased()
 
