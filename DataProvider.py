@@ -72,7 +72,7 @@ class DataProvider():
             self.__getAislesFromPickle()
             self.__getDepartmentsFromPickle()
             self.__getProductsFromPickle()
-            self.__getProductsFromPickle(True)
+            self.__getProductsFromPickle()
             self.__getOrdersFromPickle()
             self.__getUsersProductsFromPickle()
             self.__getUsersFromPickle()

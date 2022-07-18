@@ -32,7 +32,6 @@ class Telematry:
     contentBased_MissPercentage: float = None
 
     DB_orders: int = None
-    DB_products: int = None
     PerItemStoreSize: int = None
     PerUserStoreSize: int = None
 
@@ -49,7 +48,6 @@ class Telematry:
         print()
         print("#" + ("-" * self.NumOfHypens) + "#")
         print("# Num of orders: %s" % self.DB_orders)
-        print("# Num of products: %s" % self.DB_products)
         print("# Content based data prep time: %ss" %
               self.dataPrep_content_proccessingTime)
         print("# Item based data prep time:    %ss" %
@@ -87,8 +85,7 @@ class Telematry:
         print()
         print("#" + ("-" * self.NumOfHypens) + "#")
 
-        print("# Number of orders in DB: {}     Number of products: {}".format(
-            self.DB_orders, self.DB_products))
+        print("# Number of orders in DB: {}".format(self.DB_orders))
         print("# Item similarity store size : {}     User orders store size: {}".format(
             self.PerItemStoreSize, self.PerUserStoreSize))
 

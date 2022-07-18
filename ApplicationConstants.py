@@ -65,3 +65,9 @@ class ApplicationConstants():
 
     # sample size to use for preparing orders
     ORDERS_SAMPLE_SIZE_TO_USE = SAMPLE_SIZES_ORDERS[0]
+
+    # number of most purchased products per user to store
+    USERS_PRODUCTS_STORE_SIZE = USERS_PRODUCTS_STORE_SIZES[0]
+
+    # number of similarities per item to store
+    ITEM_SIMILARITY_STORE_SIZE = ITEM_SIMILARITY_STORE_SIZES[0]

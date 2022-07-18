@@ -22,16 +22,17 @@ class UImanager():
     userProductStoreSize: int
     itemSimilarityStoreSize: int
 
-    def __init__(self, isOptimized: bool, sampleSizeOrders: int, sampleSizeProducts: int, itemSimilarityStoreSize: int) -> None:
+    def __init__(self, isOptimized: bool, sampleSizeOrders: int, itemSimilarityStoreSize: int, userProductStoreSize: int) -> None:
         '''
         Constructor reads users id and list of products in current basket from input file
         '''
         self.dp = DataProvider(
-            clearCache=False, sampleSizeOrders=sampleSizeOrders)
+            clearCache=True, sampleSizeOrders=sampleSizeOrders)
+
         self.telematry = Telematry()
         self.telematry.DB_orders = sampleSizeOrders
-        self.telematry.DB_products = sampleSizeProducts
         self.telematry.PerItemStoreSize = itemSimilarityStoreSize
+        self.telematry.PerUserStoreSize = userProductStoreSize
 
         # get data from basket
         f = open(UserFiles.basketInput)
@@ -42,6 +43,7 @@ class UImanager():
 
         self.isOptimized = isOptimized
         self.itemSimilarityStoreSize = itemSimilarityStoreSize
+        self.userProductStoreSize = userProductStoreSize
 
     def getBasket(self):
         '''
