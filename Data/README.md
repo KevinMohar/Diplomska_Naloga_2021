@@ -26,6 +26,10 @@ Datoteka vsebuje šifrant hodnikov živil
 
 Datoteka vsebuje šifrant oddelkov živil
 
+| department_id |  department   |
+| ------------- | :-----------: |
+| id oddelka    | naziv oddelka |
+
 ### Order_products_prior.csv & Order_products_train.csv
 
 Datoteki vsebujta podatke o košaricah.
@@ -35,6 +39,12 @@ Datoteki vsebujta podatke o košaricah.
 | id nakupa iz orders.csv | id izdelka iz products.csv | zaporedna številka izdelka v košarici | je bil izdelek ponovno naročen |
 
 ### Orders.csv
+
+Datoteka vsebuje podatke o nakupu
+
+| order_id  | user_id       |  eval_set         |                     order_number | order_dow          | order_hour_of_day | days_since_prior_order     |
+| --------- | :-----------: | ----------------: | -------------------------------: | -----------------: | ----------------: | -------------------------: |
+| id nakupa | id uporabnika | množica podatkov  | zaporedna št naročila uporabnika | dan nakupa v tednu | ura nakupa        | št dni od prejšnega nakupa |
 
 ### Products.csv
 
