@@ -16,7 +16,15 @@ Datoteke potrebne za delovanje aplikacije:
 
 ### Aisles.csv
 
+Datoteka vsebuje šifrant hodnikov živil
+
+| aisle_id   |  aisle        |
+| ---------- | :-----------: |
+| id hodnika | naziv hodnika |
+
 ### Departments.csv
+
+Datoteka vsebuje šifrant oddelkov živil
 
 ### Order_products_prior.csv & Order_products_train.csv
 
