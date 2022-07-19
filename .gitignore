@@ -1,15 +1,4 @@
 Data/*.csv
+Data/*.pickle
 __pycache__
 .vscode/launch.json
-Data/aisles.pickle
-Data/departments.pickle
-Data/orders.pickle
-Data/products.pickle
-Data/users.pickle
-Data/usersProducts.pickle
-Data/itemSimilarities1.pickle
-.gitignore
-.gitignore
-Data/itemSimilarities10.pickle
-Data/itemSimilarities50.pickle
-Data/itemSimilarities100.pickle
