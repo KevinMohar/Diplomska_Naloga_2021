@@ -11,7 +11,6 @@ Datoteke potrebne za delovanje aplikacije:
 - order_products_train.csv
 - orders.csv
 - products.csv
-- sample_submission.csv
 
 ## Opis podatkov
 
