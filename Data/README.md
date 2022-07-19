@@ -48,7 +48,7 @@ Datoteka vsebuje podatke o nakupu
 
 ### Products.csv
 
-Datoteka vsebuje podatke o produktih
+Datoteka vsebuje šifrant o produktih
 
 | product_id   | product_name   | aisle_id                 | department_id                 |
 | ------------ | :------------: | -----------------------: | ----------------------------: |
