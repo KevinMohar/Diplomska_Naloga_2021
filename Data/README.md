@@ -48,4 +48,11 @@ Datoteka vsebuje podatke o nakupu
 
 ### Products.csv
 
-### Sample_submissions.csv
+Datoteka vsebuje podatke o produktih
+
+| product_id   | product_name   | aisle_id                 | department_id                 |
+| ------------ | :------------: | -----------------------: | ----------------------------: |
+| id produkta  | naziv produkta | id hodnika iz aisles.csv | id oddelka iz departments.csv |
+
+
+
