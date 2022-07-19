@@ -1,5 +1,4 @@
 from DataProvider import DataProvider
-import heapq
 from Predictors.Predictor import Predictor
 
 from Telematry import Telematry

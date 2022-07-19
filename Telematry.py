@@ -93,20 +93,22 @@ class Telematry:
 
         print("# Content based recommendations: ")
         for product in products_content:
-            print("#   - {}".format(product))
+            print("#   - Product {}: {}".format(product.id, product.name))
+        print("#")
         print("# CB requested products: {}        CB recommended products: {}".format(
             self.contentBased_RequestedProducts, self.contentBased_RecommendedProducts))
-        print("# CB miss percentage: {}%        Processing time: {}".format(
+        print("# CB miss percentage: {}%        Processing time: {:0.4f}s".format(
             CB_missPercent, self.contentBased_totalTime))
 
         print("#" + ("-" * int(self.NumOfHypens/2)))
 
         print("# Item based recommendations: ")
         for product in products_item:
-            print("   - {}".format(product))
+            print("#   - Product {}: {}".format(product.id, product.name))
+        print("#")
         print("# IB requested products: {}        IB recommended products: {}".format(
             self.itemBased_RequestedProducts, self.itemBased_RecommendedProducts))
-        print("# IB miss percentage: {}%        Processing time: {}".format(
+        print("# IB miss percentage: {}%        Processing time: {:0.4f}s".format(
             IB_missPercent, self.itemBased_totalTime))
 
         print("#" + ("-" * self.NumOfHypens) + "#")

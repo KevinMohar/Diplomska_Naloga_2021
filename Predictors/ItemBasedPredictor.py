@@ -1,7 +1,3 @@
-from collections import defaultdict
-from math import prod
-import random
-from DataModels import Product
 from Predictors.Predictor import Predictor
 from DataProvider import DataProvider
 import operator
@@ -14,9 +10,10 @@ class ItemBasedPredictor(Predictor):
     Item based predictor class
     '''
 
-    threshold: float  # minimal similartiy threshold between two items
+    threshold: float = 0 # minimal similarity between two items
     isOptimized = False
     storeItemSize: int
+    dp: DataProvider
 
     def __init__(self,  dp: DataProvider, isOptimized: bool, itemSimilarityStoreSize: int, telematy: Telematry) -> None:
         self.dp = dp
@@ -45,8 +42,7 @@ class ItemBasedPredictor(Predictor):
             itemSimilarities = []
             for item in basket:
                 if item in self.productSimilarities:
-                    for itm in self.productSimilarities[item]:
-                        itemSimilarities.append(itm)
+                    itemSimilarities += self.productSimilarities[item]
 
             # order by similarity
             sortedList = sorted(itemSimilarities,
@@ -55,8 +51,8 @@ class ItemBasedPredictor(Predictor):
             # remove products that are already in basket or are recommended
             topNProductSim = []
             for sim in sortedList:
-                if sim.product2 not in topNProductSim or sim.product2 not in basket:
-                    topNProductSim.append(sim)
+                if sim.product2 not in topNProductSim and sim.product2 not in basket:
+                    topNProductSim.append(sim.product2)
 
             # select N products to recommend
             if len(topNProductSim) >= N:
@@ -66,8 +62,8 @@ class ItemBasedPredictor(Predictor):
                 topNProductSim = topNProductSim
                 self.tel.itemBased_RecommendedProducts = len(topNProductSim)
 
-            for sim in topNProductSim:
-                recommendedProducts[sim.prod2] = self.dp.products[sim.prod2]
+            for prod in topNProductSim:
+                recommendedProducts[prod] = self.dp.products[prod]
 
         else:
             # calculate similarities for products in basket
