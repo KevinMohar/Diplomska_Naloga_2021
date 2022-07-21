@@ -154,7 +154,7 @@ ITEM_SIMILARITY_STORE_SIZES = ApplicationConstants.ITEM_SIMILARITY_STORE_SIZES
 NUM_OF_THREADS = 64
 MIN_SIMILARITY_TRESHOLD = 0
 
-dp = DataProvider(clearCache=False, sampleSizeOrders=SAMPLE_SIZE_ORDERS)
+dp = DataProvider(clearCache=True, sampleSizeOrders=SAMPLE_SIZE_ORDERS)
 tel = Telematry()
 tel.DB_orders = SAMPLE_SIZE_ORDERS
 

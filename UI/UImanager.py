@@ -26,7 +26,7 @@ class UImanager():
         Constructor reads users id and list of products in current basket from input file
         '''
         self.dp = DataProvider(
-            clearCache=False, sampleSizeOrders=sampleSizeOrders)
+            clearCache=True, sampleSizeOrders=sampleSizeOrders)
 
         self.telematry = Telematry()
         self.telematry.DB_orders = sampleSizeOrders

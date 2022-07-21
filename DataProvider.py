@@ -24,8 +24,8 @@ class DataProvider():
         if clearCache:
             self.__deleteAllPickle()
 
-        if not (os.path.isfile(DataPaths.ordersPickle) or os.path.isfile(DataPaths.aislesPickle)
-                or os.path.isfile(DataPaths.departmentsPickle) or os.path.isfile(DataPaths.productsPickle)):
+        if not (os.path.isfile(DataPaths.ordersPickle) and os.path.isfile(DataPaths.aislesPickle)
+                and os.path.isfile(DataPaths.departmentsPickle) and os.path.isfile(DataPaths.productsPickle)):
 
             print(Logging.INFO + "Started data parsing (to parse: aisles, departments, products, orders, ordered products)...")
 
