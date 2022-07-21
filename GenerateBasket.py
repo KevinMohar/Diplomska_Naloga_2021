@@ -5,14 +5,15 @@ from DataProvider import DataProvider
 
 
 SAMPLE_SIZE_ORDERS = ApplicationConstants.ORDERS_SAMPLE_SIZE_TO_USE
-NUM_OF_PRODUCTS_IN_BASKET = 5
+NUM_OF_PRODUCTS_IN_BASKET = 10
 
 
-dp = DataProvider(clearCache=False, sampleSizeOrders=SAMPLE_SIZE_ORDERS)
+dp = DataProvider(clearCache=True, sampleSizeOrders=SAMPLE_SIZE_ORDERS)
 
 isOk = False
 randProducts = []
 randUser = -1
+printProducts = False
 
 while not isOk:
     # randomly select N products
@@ -30,9 +31,10 @@ while not isOk:
     # print baseket and wait for conformation
     print("Randomly generated basket: ")
     print("User: {}".format(randUser))
-    print("Products: ")
-    for prd in randProducts:
-        print("  - {}".format(dp.products[prd]))
+    if printProducts:
+        print("Products: ")
+        for prd in randProducts:
+            print("  - {}".format(dp.products[prd]))
 
     userInput = ""
     while True:

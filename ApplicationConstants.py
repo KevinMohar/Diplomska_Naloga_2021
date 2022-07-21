@@ -63,18 +63,22 @@ class ApplicationConstants():
     # number of stored items most similar to each item
     ITEM_SIMILARITY_STORE_SIZES = [1, 10, 50, 100]
 
-    REQU_NUMBS_OF_PRODUCTS = [10, 20]
+    # number of products to reccomend with each methods
+    REQU_NUMBS_OF_PRODUCTS = [10, 20, 40]
 
     #-----------------------------------------------------------------
 
-    # amount of products to recommend with each metod
-    REQUESTED_NUM_OF_PRODUCTS = REQU_NUMBS_OF_PRODUCTS[1]
+    # selected amount of products to recommend with each metod
+    REQUESTED_NUM_OF_PRODUCTS = REQU_NUMBS_OF_PRODUCTS[0]
 
     # sample size to use for preparing orders
     ORDERS_SAMPLE_SIZE_TO_USE = SAMPLE_SIZES_ORDERS[0]
 
+    # index of element to use for store size
+    _INDEX = 2
+
     # number of most purchased products per user to store
-    USERS_PRODUCTS_STORE_SIZE = USERS_PRODUCTS_STORE_SIZES[1]
+    USERS_PRODUCTS_STORE_SIZE = USERS_PRODUCTS_STORE_SIZES[_INDEX]
 
     # number of similarities per item to store
-    ITEM_SIMILARITY_STORE_SIZE = ITEM_SIMILARITY_STORE_SIZES[1]
+    ITEM_SIMILARITY_STORE_SIZE = ITEM_SIMILARITY_STORE_SIZES[_INDEX]

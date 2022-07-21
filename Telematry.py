@@ -68,7 +68,7 @@ class Telematry:
         print("#" + ("-" * self.NumOfHypens) + "#")
         print()
 
-    def PrintReccomendations(self, products_content, products_item):
+    def PrintReccomendations(self, products_content, products_item, printProducts = False):
         CB_missPercent = 0
         IB_missPercent = 0
 
@@ -91,9 +91,10 @@ class Telematry:
 
         print("#" + ("-" * int(self.NumOfHypens/2)))
 
-        print("# Content based recommendations: ")
-        for product in products_content:
-            print("#   - Product {}: {}".format(product.id, product.name))
+        if printProducts:
+            print("# Content based recommendations: ")
+            for product in products_content:
+                print("#   - Product {}: {}".format(product.id, product.name))
         print("#")
         print("# CB requested products: {}        CB recommended products: {}".format(
             self.contentBased_RequestedProducts, self.contentBased_RecommendedProducts))
@@ -102,9 +103,10 @@ class Telematry:
 
         print("#" + ("-" * int(self.NumOfHypens/2)))
 
-        print("# Item based recommendations: ")
-        for product in products_item:
-            print("#   - Product {}: {}".format(product.id, product.name))
+        if printProducts:
+            print("# Item based recommendations: ")
+            for product in products_item:
+                print("#   - Product {}: {}".format(product.id, product.name))
         print("#")
         print("# IB requested products: {}        IB recommended products: {}".format(
             self.itemBased_RequestedProducts, self.itemBased_RecommendedProducts))
