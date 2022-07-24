@@ -69,13 +69,15 @@ class ApplicationConstants():
     #-----------------------------------------------------------------
 
     # selected amount of products to recommend with each metod
-    REQUESTED_NUM_OF_PRODUCTS = REQU_NUMBS_OF_PRODUCTS[0]
+    REQUESTED_NUM_OF_PRODUCTS = REQU_NUMBS_OF_PRODUCTS[2]
 
     # sample size to use for preparing orders
-    ORDERS_SAMPLE_SIZE_TO_USE = SAMPLE_SIZES_ORDERS[0]
+    ORDERS_SAMPLE_SIZE_TO_USE = SAMPLE_SIZES_ORDERS[3]
 
     # index of element to use for store size
-    _INDEX = 2
+    _INDEX = 3
+
+    #-----------------------------------------------------------------
 
     # number of most purchased products per user to store
     USERS_PRODUCTS_STORE_SIZE = USERS_PRODUCTS_STORE_SIZES[_INDEX]

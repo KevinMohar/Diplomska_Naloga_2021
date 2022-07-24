@@ -4,8 +4,8 @@ from ApplicationConstants import ApplicationConstants, UserFiles, Logging
 from DataProvider import DataProvider
 
 
-SAMPLE_SIZE_ORDERS = ApplicationConstants.ORDERS_SAMPLE_SIZE_TO_USE
-NUM_OF_PRODUCTS_IN_BASKET = 10
+SAMPLE_SIZE_ORDERS = ApplicationConstants.SAMPLE_SIZES_ORDERS[0]
+NUM_OF_PRODUCTS_IN_BASKET = 20
 
 
 dp = DataProvider(clearCache=True, sampleSizeOrders=SAMPLE_SIZE_ORDERS)
