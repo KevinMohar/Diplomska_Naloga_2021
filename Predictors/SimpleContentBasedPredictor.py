@@ -1,3 +1,4 @@
+import heapq
 from DataProvider import DataProvider
 from Predictors.Predictor import Predictor
 
@@ -51,17 +52,20 @@ class SimpleContentBasedPredictor(Predictor):
             userOrderdProducts = self.dp.getUserOrderedProducts(user_id)
 
             # remove products already in the basket
-            cleanList = [
-                item_id for item_id in userOrderdProducts if item_id not in basket]
+            cleanList = {
+                item_id:userOrderdProducts[item_id] for item_id in userOrderdProducts if item_id not in basket}
+
+            # order by most purchased product
+            topNProductsKeys = heapq.nlargest(N, cleanList, key=userOrderdProducts.get)
 
             # select users N most purchased products
-            if len(cleanList) >= N:
-                topNProducts = cleanList[:N]
+            if len(topNProductsKeys) >= N:
+                topNProducts = topNProductsKeys[:N]
                 self.tel.contentBased_RecommendedProducts = N
             else:
-                topNProducts = cleanList
+                topNProducts = topNProductsKeys
                 self.tel.contentBased_RecommendedProducts = len(
-                    cleanList)
+                    topNProductsKeys)
 
         for prod in topNProducts:
             result[prod] = self.dp.products[prod]

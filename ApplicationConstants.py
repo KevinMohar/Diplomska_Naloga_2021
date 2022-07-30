@@ -1,3 +1,4 @@
+
 class DataPaths():
     '''
     Class for holding paths to data files
@@ -66,16 +67,20 @@ class ApplicationConstants():
     # number of products to reccomend with each methods
     REQU_NUMBS_OF_PRODUCTS = [10, 20, 40]
 
+    # true - uporablja opimizirani algoritem ki bere podatke iz baze in jih ne računa
+    # false - uporablja osnovni algoritem ki računa podakte ob runtime
+    IS_OPTIMIZED_ALGORITHEM = False
+
     #-----------------------------------------------------------------
 
     # selected amount of products to recommend with each metod
-    REQUESTED_NUM_OF_PRODUCTS = REQU_NUMBS_OF_PRODUCTS[2]
+    REQUESTED_NUM_OF_PRODUCTS = REQU_NUMBS_OF_PRODUCTS[0]
 
     # sample size to use for preparing orders
-    ORDERS_SAMPLE_SIZE_TO_USE = SAMPLE_SIZES_ORDERS[3]
+    ORDERS_SAMPLE_SIZE_TO_USE = SAMPLE_SIZES_ORDERS[0]
 
     # index of element to use for store size
-    _INDEX = 3
+    _INDEX = 0
 
     #-----------------------------------------------------------------
 

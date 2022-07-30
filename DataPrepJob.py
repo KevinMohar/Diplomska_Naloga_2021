@@ -232,7 +232,7 @@ for N in ITEM_SIMILARITY_STORE_SIZES:
 
     for prod in itemSimilarites:
         sortedList = sorted(itemSimilarites[prod],
-                            key=lambda x: x.similarity, reverse=False)
+                            key=lambda x: x.similarity, reverse=True)
         data = []
         if N < len(sortedList):
             data = sortedList[:N]

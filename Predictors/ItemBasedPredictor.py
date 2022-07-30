@@ -1,3 +1,5 @@
+import threading
+from DataModels import Similarity
 from Predictors.Predictor import Predictor
 from DataProvider import DataProvider
 import operator
@@ -14,6 +16,7 @@ class ItemBasedPredictor(Predictor):
     isOptimized = False
     storeItemSize: int
     dp: DataProvider
+    itemSimilarities = []
 
     def __init__(self,  dp: DataProvider, isOptimized: bool, itemSimilarityStoreSize: int, telematy: Telematry) -> None:
         self.dp = dp
@@ -24,7 +27,7 @@ class ItemBasedPredictor(Predictor):
         self.storeItemSize = itemSimilarityStoreSize
         self.tel = telematy
 
-    def predict(self, N: int, user_id: int, basket: list):
+    def predict(self, N: int, user_id: int, productsInBasket: list):
         '''
         Function returns list of N recommended products not in users current basket using item-item CF
         '''
@@ -32,6 +35,8 @@ class ItemBasedPredictor(Predictor):
         self.tel.itemBased_RequestedProducts = N
         self.tel.StartItemBased()
         recommendedProducts = {}
+        basket = list(set(productsInBasket))
+
 
         if self.isOptimized:
             # read prepared similarites for each product
@@ -39,13 +44,13 @@ class ItemBasedPredictor(Predictor):
                 self.storeItemSize)
 
             # filter out similarities only for items in basket
-            itemSimilarities = []
+            self.itemSimilarities = []
             for item in basket:
                 if item in self.productSimilarities:
-                    itemSimilarities += self.productSimilarities[item]
+                    self.itemSimilarities += self.productSimilarities[item]
 
             # order by similarity
-            sortedList = sorted(itemSimilarities,
+            sortedList = sorted(self.itemSimilarities,
                                 key=lambda x: x.similarity, reverse=True)
 
             # remove products that are already in basket or are recommended
@@ -67,37 +72,59 @@ class ItemBasedPredictor(Predictor):
 
         else:
             # calculate similarities for products in basket
-            itemSimilarities = {}
+            self.itemSimilarities = []
+            threads = []
+            global_lock = threading.Lock()
 
-            for productId1 in basket:
-                for productId2 in self.dp.products:
-                    if productId2 not in basket:
-                        if productId2 not in itemSimilarities:
-                            itemSimilarities[productId2] = self.CalcSimWithYoulsQ(
-                                productId1, productId2)
+            for item_id in basket:
+                thread = threading.Thread(target=self.CalcSimilaritiesForProduct, args=(item_id, self.dp.products, global_lock))
+                threads.append(thread)
+
+            [thread.start() for thread in threads]
+            [thread.join() for thread in threads]
 
             # order by similarity (most similar first) and return N most similar items
-            sortedSimDict = dict(sorted(itemSimilarities.items(),
-                                        key=operator.itemgetter(1), reverse=True))
+            sortedSimDict = sorted(self.itemSimilarities,
+                            key=lambda x: x.similarity, reverse=True)
+
             if len(sortedSimDict) >= N:
                 self.tel.itemBased_RecommendedProducts = N
-                topNmostSimilarItems = list(sortedSimDict)[:N]
-                for productId in topNmostSimilarItems:
-                    recommendedProducts[productId] = self.dp.products[productId]
+                for sim  in sortedSimDict:
+                    if sim.product2 not in basket and sim.product2 not in recommendedProducts:
+                        recommendedProducts[sim.product2] = self.dp.products[sim.product2]
+                    if len(recommendedProducts) == N:
+                        break
             else:
                 self.tel.itemBased_RecommendedProducts = len(sortedSimDict)
-                for productId in sortedSimDict:
-                    recommendedProducts[productId] = self.dp.products[productId]
+                for sim in sortedSimDict:
+                    if sim.product2 not in basket and sim.product2 not in recommendedProducts:
+                        recommendedProducts[sim.product2] = self.dp.products[sim.product2]
 
         self.tel.EndItemBased()
         return recommendedProducts
 
-    def CalcSimWithYoulsQ(self, prod1, prod2):
+    def CalcSimilaritiesForProduct(self, product_Id:int, products, globalLock):
+        similarities = []
+
+        for product2_id in products:
+            sim = self.CalcSimWithYoulsQ(product_Id, product2_id, globalLock)
+            similarities.append(Similarity(product_Id, product2_id, sim))
+
+        while globalLock.locked():
+            continue
+
+        globalLock.acquire()
+
+        for sim in similarities:
+            self.itemSimilarities.append(sim)
+        globalLock.release()
+
+    def CalcSimWithYoulsQ(self, prod1, prod2, globalLock):
         '''
         Function accepts 2 products and returns similarity between given products calculated using Youls' Q
         '''
         purchasedBoth, purchasedNone, purchasedFirst, purchasedSecond = self.getNumOfPurchases(
-            prod1, prod2)
+            prod1, prod2, globalLock)
 
         similarity = 0
 
@@ -115,7 +142,7 @@ class ItemBasedPredictor(Predictor):
 
         return similarity
 
-    def getNumOfPurchases(self, prod1: int, prod2: int):
+    def getNumOfPurchases(self, prod1: int, prod2: int, globalLock):
         '''
         Function accepts 2 products and returns values needed for Youls' Q calculation
         '''
@@ -124,53 +151,21 @@ class ItemBasedPredictor(Predictor):
         countFirst = 0
         countSecond = 0
 
-        found = [False, False, False, False]
-
-        # both
-        if (prod1, prod2) in self.bothProductPurchases or (prod2, prod1) in self.bothProductPurchases:
-            countBoth = self.bothProductPurchases[(prod1, prod2)] if (
-                prod1, prod2) in self.bothProductPurchases else self.bothProductPurchases[(prod2, prod1)]
-            found[0] = True
-
-        # none
-        if (prod1, prod2) in self.noneProductPurchases or (prod2, prod1) in self.noneProductPurchases:
-            countNone = self.noneProductPurchases[(prod1, prod2)] if (
-                prod1, prod2) in self.noneProductPurchases else self.noneProductPurchases[(prod2, prod1)]
-            found[1] = True
-
-        # first but not second
-        if (prod1, prod2) in self.oneProductPurchases:
-            countFirst = self.oneProductPurchases[(prod1, prod2)]
-            found[2] = True
-
-        # second but not first
-        if (prod2, prod1) in self.oneProductPurchases:
-            countFirst = self.oneProductPurchases[(prod1, prod2)]
-            found[3] = True
-
-        if not all(found):
-            for user_id in dp.usersProducts:
+        for user_id in self.dp.usersProducts:
                 # both
-                if prod1 in dp.usersProducts[user_id] and prod2 in dp.usersProducts[user_id]:
+                if prod1 in self.dp.usersProducts[user_id] and prod2 in self.dp.usersProducts[user_id]:
                     countBoth += 1
 
                 # none
-                if prod1 not in dp.usersProducts[user_id] and prod2 not in dp.usersProducts[user_id]:
+                if prod1 not in self.dp.usersProducts[user_id] and prod2 not in self.dp.usersProducts[user_id]:
                     countNone += 1
 
                 # first but not second
-                if prod1 in dp.usersProducts[user_id] and prod2 not in dp.usersProducts[user_id]:
+                if prod1 in self.dp.usersProducts[user_id] and prod2 not in self.dp.usersProducts[user_id]:
                     countFirst += 1
 
                 # second but not first
-                if prod1 not in dp.usersProducts[user_id] and prod2 in dp.usersProducts[user_id]:
+                if prod1 not in self.dp.usersProducts[user_id] and prod2 in self.dp.usersProducts[user_id]:
                     countSecond += 1
-
-            self.bothProductPurchases.update({(prod1, prod2): countBoth})
-            self.bothProductPurchases.update({(prod2, prod1): countBoth})
-            self.noneProductPurchases.update({(prod1, prod2): countNone})
-            self.noneProductPurchases.update({(prod2, prod1): countNone})
-            self.oneProductPurchases.update({(prod1, prod2): countFirst})
-            self.oneProductPurchases.update({(prod2, prod1): countSecond})
 
         return (countBoth, countNone, countFirst, countSecond)
