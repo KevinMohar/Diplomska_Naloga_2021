@@ -63,7 +63,7 @@ class Telematry:
         print()
         print("#" + ("-" * self.NumOfHypens) + "#")
         print("# Num of orders: %s" % self.DB_orders)
-        print("# Total data filtration time:         %0.2f" %
+        print("# Total data filtration time:         %0.2fs" %
               self.dataFiltr_total_time)
         print("#" + ("-" * self.NumOfHypens) + "#")
         print()
