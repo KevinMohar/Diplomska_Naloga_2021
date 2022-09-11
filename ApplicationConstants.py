@@ -69,7 +69,7 @@ class ApplicationConstants():
 
     # true - uporablja opimizirani algoritem ki bere podatke iz baze in jih ne računa
     # false - uporablja osnovni algoritem ki računa podakte ob runtime
-    IS_OPTIMIZED_ALGORITHEM = False
+    IS_OPTIMIZED_ALGORITHEM = True
 
     #-----------------------------------------------------------------
 
@@ -80,7 +80,7 @@ class ApplicationConstants():
     ORDERS_SAMPLE_SIZE_TO_USE = SAMPLE_SIZES_ORDERS[3]
 
     # index of element to use for store size
-    _INDEX = 0
+    _INDEX = 3
 
     #-----------------------------------------------------------------
 
